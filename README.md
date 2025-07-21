@@ -1,0 +1,2 @@
+# MajorProject
+Manage smart library
