@@ -16,6 +16,10 @@
     <class>com.tnc.library.pojo.Reader</class>
     <class>com.tnc.library.pojo.Admin</class>
     <class>com.tnc.library.pojo.Borrowslip</class>
+    <class>com.tnc.library.pojo.CategoryBook</class>
+    <class>com.tnc.library.pojo.Category</class>
+    <class>com.tnc.library.pojo.Author</class>
+    <class>com.tnc.library.pojo.AuthorBook</class>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/librarydb?zeroDateTimeBehavior=CONVERT_TO_NULL"/>
       <property name="javax.persistence.jdbc.user" value="root"/>

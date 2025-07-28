@@ -15,7 +15,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -26,12 +25,11 @@ import java.io.Serializable;
  */
 @Data
 @Entity
-@Table(name = "reader_ebook")
+@Table(name = "category_book")
 @NamedQueries({
-    @NamedQuery(name = "ReaderEbook.findAll", query = "SELECT r FROM ReaderEbook r"),
-    @NamedQuery(name = "ReaderEbook.findById", query = "SELECT r FROM ReaderEbook r WHERE r.id = :id"),
-    @NamedQuery(name = "ReaderEbook.findByDuration", query = "SELECT r FROM ReaderEbook r WHERE r.duration = :duration")})
-public class ReaderEbook implements Serializable {
+    @NamedQuery(name = "CategoryBook.findAll", query = "SELECT c FROM CategoryBook c"),
+    @NamedQuery(name = "CategoryBook.findById", query = "SELECT c FROM CategoryBook c WHERE c.id = :id")})
+public class CategoryBook implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -39,27 +37,18 @@ public class ReaderEbook implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Integer id;
-    @Basic(optional = false)
-    @NotNull
-    @Column(name = "duration")
-    private int duration;
-    @JoinColumn(name = "e_book_id", referencedColumnName = "id")
+    @JoinColumn(name = "book_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
-    private Ebook eBookId;
-    @JoinColumn(name = "reader_id", referencedColumnName = "id")
+    private Book bookId;
+    @JoinColumn(name = "category_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
-    private Reader readerId;
+    private Category categoryId;
 
-    public ReaderEbook() {
+    public CategoryBook() {
     }
 
-    public ReaderEbook(Integer id) {
+    public CategoryBook(Integer id) {
         this.id = id;
-    }
-
-    public ReaderEbook(Integer id, int duration) {
-        this.id = id;
-        this.duration = duration;
     }
 
     @Override
@@ -72,10 +61,10 @@ public class ReaderEbook implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof ReaderEbook)) {
+        if (!(object instanceof CategoryBook)) {
             return false;
         }
-        ReaderEbook other = (ReaderEbook) object;
+        CategoryBook other = (CategoryBook) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -84,7 +73,7 @@ public class ReaderEbook implements Serializable {
 
     @Override
     public String toString() {
-        return "com.tnc.library.pojo.ReaderEbook[ id=" + id + " ]";
+        return "com.tnc.library.pojo.CategoryBook[ id=" + id + " ]";
     }
     
 }

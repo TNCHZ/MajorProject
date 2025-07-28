@@ -8,6 +8,8 @@ import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.NamedQueries;
@@ -19,7 +21,6 @@ import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -47,8 +48,8 @@ public class Event implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
-    @NotNull
     @Column(name = "id")
     private Integer id;
     @Basic(optional = false)
@@ -58,12 +59,12 @@ public class Event implements Serializable {
     private String name;
     @Basic(optional = false)
     @NotNull
-    @Column(name = "startDate")
+    @Column(name = "start_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date startDate;
     @Basic(optional = false)
     @NotNull
-    @Column(name = "endDate")
+    @Column(name = "end_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date endDate;
     @Basic(optional = false)
@@ -84,9 +85,9 @@ public class Event implements Serializable {
     private boolean status;
     @Basic(optional = false)
     @NotNull
-    @Column(name = "maxParticipants")
+    @Column(name = "max_participants")
     private int maxParticipants;
-    @Column(name = "currentParticipants")
+    @Column(name = "current_participants")
     private Integer currentParticipants;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "eventId")
     private Set<ReaderEvent> readerEventSet;

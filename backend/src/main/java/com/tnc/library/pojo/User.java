@@ -5,14 +5,24 @@
 package com.tnc.library.pojo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+import jakarta.persistence.Basic;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
-import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.Serializable;
+
+import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  *
@@ -45,12 +55,12 @@ public class User implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 50)
-    @Column(name = "firstName")
+    @Column(name = "first_name")
     private String firstName;
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 50)
-    @Column(name = "lastName")
+    @Column(name = "last_name")
     private String lastName;
     // @Pattern(regexp="^\\(?(\\d{3})\\)?[- ]?(\\d{3})[- ]?(\\d{4})$", message="Invalid phone/fax format, should be as xxx-xxx-xxxx")//if the field contains phone or fax number consider using this annotation to enforce field validation
     @Basic(optional = false)
@@ -73,7 +83,7 @@ public class User implements Serializable {
     private String avatar;
     @Basic(optional = false)
     @NotNull
-    @Size(min = 1, max = 20)
+    @Size(min = 1, max = 9)
     @Column(name = "role")
     private String role;
     @Basic(optional = false)
@@ -92,7 +102,7 @@ public class User implements Serializable {
     private String password;
     @Transient
     @JsonIgnore
-    private MultipartFile File;
+    private MultipartFile file;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "user")
     private Reader reader;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "user")
@@ -144,5 +154,4 @@ public class User implements Serializable {
     public String toString() {
         return "com.tnc.library.pojo.User[ id=" + id + " ]";
     }
-    
 }

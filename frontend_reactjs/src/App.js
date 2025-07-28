@@ -6,6 +6,8 @@ import MainLayout from "./layouts/MainLayout";
 import { MyDispatchContext, MyUserContext } from "./configs/Context";
 import { useReducer } from "react";
 import myUserReducer from "./reducer/MyUserReducer";
+import BookPage from "./pages/BookPage";
+import RegisterReaderPage from "./pages/RegisterReaderPage";
 
 const App = () => {
   const [user, dispatch] = useReducer(myUserReducer, null);
@@ -19,9 +21,11 @@ const App = () => {
             <Route path="/" element={<LoginPage />} />
 
             {/* Các route cần layout */}
-            <Route path="/" element={<MainLayout />}>
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/main" element={<MainLayout />}>
+              <Route path="dashboard" element={<DashboardPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="books" element={<BookPage />} />
+              <Route path="readers" element={<RegisterReaderPage />} />
             </Route>
           </Routes>
         </Router>

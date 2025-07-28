@@ -47,7 +47,7 @@ public class Printedbook implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 50)
-    @Column(name = "shelfLocation")
+    @Column(name = "shelf_location")
     private String shelfLocation;
     @Basic(optional = false)
     @NotNull
@@ -56,11 +56,11 @@ public class Printedbook implements Serializable {
     private String status;
     @Basic(optional = false)
     @NotNull
-    @Column(name = "totalCopy")
+    @Column(name = "total_copy")
     private int totalCopy;
     @Basic(optional = false)
     @NotNull
-    @Column(name = "borrowCount")
+    @Column(name = "borrow_count")
     private int borrowCount;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "printedBookId")
     private Set<BorrowslipPrintedbook> borrowslipPrintedbookSet;

@@ -78,7 +78,6 @@ public class UserServiceImpl implements UserService {
             User user = u.get();
             return passwordEncoder.matches(password, user.getPassword());
         }
-
         return false;
     }
 

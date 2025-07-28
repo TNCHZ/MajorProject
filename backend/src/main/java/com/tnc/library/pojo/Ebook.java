@@ -18,8 +18,6 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Set;
@@ -34,6 +32,7 @@ import java.util.Set;
 @NamedQueries({
     @NamedQuery(name = "Ebook.findAll", query = "SELECT e FROM Ebook e"),
     @NamedQuery(name = "Ebook.findById", query = "SELECT e FROM Ebook e WHERE e.id = :id"),
+    @NamedQuery(name = "Ebook.findByImage", query = "SELECT e FROM Ebook e WHERE e.image = :image"),
     @NamedQuery(name = "Ebook.findByFileUrl", query = "SELECT e FROM Ebook e WHERE e.fileUrl = :fileUrl"),
     @NamedQuery(name = "Ebook.findByFormat", query = "SELECT e FROM Ebook e WHERE e.format = :format"),
     @NamedQuery(name = "Ebook.findByLisence", query = "SELECT e FROM Ebook e WHERE e.lisence = :lisence"),
@@ -49,7 +48,12 @@ public class Ebook implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
-    @Column(name = "fileUrl")
+    @Column(name = "image")
+    private String image;
+    @Basic(optional = false)
+    @NotNull
+    @Size(min = 1, max = 255)
+    @Column(name = "file_url")
     private String fileUrl;
     @Basic(optional = false)
     @NotNull
@@ -63,7 +67,7 @@ public class Ebook implements Serializable {
     private String lisence;
     @Basic(optional = false)
     @NotNull
-    @Column(name = "totalView")
+    @Column(name = "total_view")
     private int totalView;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "eBookId")
     private Set<ReaderEbook> readerEbookSet;
@@ -78,8 +82,9 @@ public class Ebook implements Serializable {
         this.id = id;
     }
 
-    public Ebook(Integer id, String fileUrl, String format, String lisence, int totalView) {
+    public Ebook(Integer id, String image, String fileUrl, String format, String lisence, int totalView) {
         this.id = id;
+        this.image = image;
         this.fileUrl = fileUrl;
         this.format = format;
         this.lisence = lisence;

@@ -5,20 +5,24 @@
 package com.tnc.library.pojo;
 
 import jakarta.persistence.Basic;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.Set;
 
 /**
  *
@@ -26,12 +30,12 @@ import java.io.Serializable;
  */
 @Data
 @Entity
-@Table(name = "reader_ebook")
+@Table(name = "category")
 @NamedQueries({
-    @NamedQuery(name = "ReaderEbook.findAll", query = "SELECT r FROM ReaderEbook r"),
-    @NamedQuery(name = "ReaderEbook.findById", query = "SELECT r FROM ReaderEbook r WHERE r.id = :id"),
-    @NamedQuery(name = "ReaderEbook.findByDuration", query = "SELECT r FROM ReaderEbook r WHERE r.duration = :duration")})
-public class ReaderEbook implements Serializable {
+    @NamedQuery(name = "Category.findAll", query = "SELECT c FROM Category c"),
+    @NamedQuery(name = "Category.findById", query = "SELECT c FROM Category c WHERE c.id = :id"),
+    @NamedQuery(name = "Category.findByName", query = "SELECT c FROM Category c WHERE c.name = :name")})
+public class Category implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -41,25 +45,22 @@ public class ReaderEbook implements Serializable {
     private Integer id;
     @Basic(optional = false)
     @NotNull
-    @Column(name = "duration")
-    private int duration;
-    @JoinColumn(name = "e_book_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Ebook eBookId;
-    @JoinColumn(name = "reader_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Reader readerId;
+    @Size(min = 1, max = 255)
+    @Column(name = "name")
+    private String name;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "categoryId")
+    private Set<CategoryBook> categoryBookSet;
 
-    public ReaderEbook() {
+    public Category() {
     }
 
-    public ReaderEbook(Integer id) {
+    public Category(Integer id) {
         this.id = id;
     }
 
-    public ReaderEbook(Integer id, int duration) {
+    public Category(Integer id, String name) {
         this.id = id;
-        this.duration = duration;
+        this.name = name;
     }
 
     @Override
@@ -72,10 +73,10 @@ public class ReaderEbook implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof ReaderEbook)) {
+        if (!(object instanceof Category)) {
             return false;
         }
-        ReaderEbook other = (ReaderEbook) object;
+        Category other = (Category) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -84,7 +85,7 @@ public class ReaderEbook implements Serializable {
 
     @Override
     public String toString() {
-        return "com.tnc.library.pojo.ReaderEbook[ id=" + id + " ]";
+        return "com.tnc.library.pojo.Category[ id=" + id + " ]";
     }
     
 }

@@ -7,6 +7,8 @@ package com.tnc.library.pojo;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
@@ -14,11 +16,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.io.Serializable;
 
@@ -37,8 +36,8 @@ public class Interact implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
-    @NotNull
     @Column(name = "id")
     private Integer id;
     @Size(max = 50)
@@ -48,10 +47,10 @@ public class Interact implements Serializable {
     @Size(max = 65535)
     @Column(name = "comment")
     private String comment;
-    @JoinColumn(name = "bookId", referencedColumnName = "id")
+    @JoinColumn(name = "book_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Book bookId;
-    @JoinColumn(name = "readerId", referencedColumnName = "id")
+    @JoinColumn(name = "reader_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Reader readerId;
 

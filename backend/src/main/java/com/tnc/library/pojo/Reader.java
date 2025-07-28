@@ -4,19 +4,8 @@
  */
 package com.tnc.library.pojo;
 
-import jakarta.persistence.Basic;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -47,20 +36,22 @@ public class Reader implements Serializable {
     private Integer id;
     @Basic(optional = false)
     @NotNull
-    @Column(name = "memberDate")
+    @Column(name = "member_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date memberDate;
     @Basic(optional = false)
     @NotNull
-    @Column(name = "memberExpire")
+    @Column(name = "member_expire")
     @Temporal(TemporalType.TIMESTAMP)
     private Date memberExpire;
     @Basic(optional = false)
     @NotNull
-    @Column(name = "isMember")
+    @Column(name = "is_member")
     private boolean isMember;
     @JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
     @OneToOne(optional = false)
+    @JsonIgnore
+    @MapsId
     private User user;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "readerId")
     private Set<Interact> interactSet;

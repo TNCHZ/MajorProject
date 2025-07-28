@@ -7,16 +7,15 @@ package com.tnc.library.pojo;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.io.Serializable;
 
@@ -34,14 +33,14 @@ public class ReaderEvent implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
-    @NotNull
     @Column(name = "id")
     private Integer id;
-    @JoinColumn(name = "eventId", referencedColumnName = "id")
+    @JoinColumn(name = "event_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Event eventId;
-    @JoinColumn(name = "readerId", referencedColumnName = "id")
+    @JoinColumn(name = "reader_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Reader readerId;
 

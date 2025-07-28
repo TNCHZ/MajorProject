@@ -7,6 +7,8 @@ package com.tnc.library.pojo;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -18,8 +20,6 @@ import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -43,8 +43,8 @@ public class Payment implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
-    @NotNull
     @Column(name = "id")
     private Integer id;
     @Basic(optional = false)
@@ -54,7 +54,7 @@ public class Payment implements Serializable {
     private String title;
     @Basic(optional = false)
     @NotNull
-    @Column(name = "paymentDate")
+    @Column(name = "payment_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date paymentDate;
     @Basic(optional = false)
@@ -71,7 +71,7 @@ public class Payment implements Serializable {
     @Size(min = 1, max = 50)
     @Column(name = "type")
     private String type;
-    @JoinColumn(name = "readerId", referencedColumnName = "id")
+    @JoinColumn(name = "reader_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Reader readerId;
 

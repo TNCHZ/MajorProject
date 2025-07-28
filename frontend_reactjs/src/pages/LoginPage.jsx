@@ -1,7 +1,8 @@
 import React, { useContext, useState } from "react";
 import { MyDispatchContext } from "../configs/Context";
 import APIs, { authApis, endpoints } from "../configs/Apis";
-import cookie from "react-cookies"; // Sửa lại import này
+import cookie from "react-cookies";
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
   const [user, setUser] = useState({ username: '', password: '' });
@@ -9,6 +10,7 @@ const LoginPage = () => {
   const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const dispatch = useContext(MyDispatchContext);
+  const nav = useNavigate();
 
   const validate = () => {
     let errors = {};
@@ -34,15 +36,15 @@ const LoginPage = () => {
       const token = res?.data?.token;
       if (!token) throw new Error('Không nhận được token từ server');
 
-      cookie.save('token', token, { path: '/' }); 
-
+      cookie.save('token', res.data.token);
       const userRes = await authApis().get(endpoints.profile);
-      console.log('User profile:', userRes.data);
+      
       dispatch({
         type: 'login',
         payload: userRes.data,
       });
 
+      nav('/main');
     } catch (err) {
       setMsg('Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản/mật khẩu.');
     } finally {

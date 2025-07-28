@@ -8,6 +8,8 @@ import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
@@ -21,8 +23,6 @@ import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -46,23 +46,23 @@ public class Borrowslip implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
-    @NotNull
     @Column(name = "id")
     private Integer id;
     @Basic(optional = false)
     @NotNull
-    @Column(name = "borrowDate")
+    @Column(name = "borrow_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date borrowDate;
     @Basic(optional = false)
     @NotNull
-    @Column(name = "dueDate")
+    @Column(name = "due_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date dueDate;
     @Basic(optional = false)
     @NotNull
-    @Column(name = "returnDate")
+    @Column(name = "return_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date returnDate;
     @Basic(optional = false)
@@ -76,7 +76,7 @@ public class Borrowslip implements Serializable {
     private String note;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "borrowSlipId")
     private Set<BorrowslipPrintedbook> borrowslipPrintedbookSet;
-    @JoinColumn(name = "readerId", referencedColumnName = "id")
+    @JoinColumn(name = "reader_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Reader readerId;
 

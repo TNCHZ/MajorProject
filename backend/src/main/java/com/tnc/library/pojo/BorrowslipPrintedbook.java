@@ -7,14 +7,17 @@ package com.tnc.library.pojo;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 
@@ -32,14 +35,14 @@ public class BorrowslipPrintedbook implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
-    @NotNull
     @Column(name = "id")
     private Integer id;
-    @JoinColumn(name = "borrowSlipId", referencedColumnName = "id")
+    @JoinColumn(name = "borrow_slip_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Borrowslip borrowSlipId;
-    @JoinColumn(name = "printedBookId", referencedColumnName = "id")
+    @JoinColumn(name = "printed_book_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Printedbook printedBookId;
 
