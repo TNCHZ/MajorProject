@@ -10,11 +10,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class CategoryServiceImpl implements CategoryService {
     @Autowired
-    private CategoryRepository categoryRepo;
+    private CategoryRepository categoryRepository;
 
     @Override
     @Transactional
     public Category addOrUpdateCategory(Category c) {
-        return this.categoryRepo.save(c);
+        return this.categoryRepository.save(c);
     }
 }

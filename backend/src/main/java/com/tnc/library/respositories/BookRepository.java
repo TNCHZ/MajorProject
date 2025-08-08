@@ -1,8 +1,12 @@
 package com.tnc.library.respositories;
 
 import com.tnc.library.pojo.Book;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
 
 import java.util.Optional;
 
@@ -10,4 +14,5 @@ import java.util.Optional;
 @Repository
 public interface BookRepository extends JpaRepository<Book, Integer> {
     Optional<Book> findBookByTitle(String title);
+    Page<Book> findAllBook(Pageable pageable);
 }

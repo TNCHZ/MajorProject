@@ -1,9 +1,13 @@
 package com.tnc.library.respositories;
 
-import com.tnc.library.pojo.Printedbook;
+import com.tnc.library.pojo.PrintedBook;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PrintedBookRepository extends JpaRepository<Printedbook, Integer> {
+public interface PrintedBookRepository extends JpaRepository<PrintedBook, Integer> {
+    Page<PrintedBook> findAllPrintedBook(Pageable pageable);
+
 }

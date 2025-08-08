@@ -5,22 +5,20 @@
 package com.tnc.library.pojo;
 
 import jakarta.persistence.Basic;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.Set;
 
 /**
  *
@@ -28,8 +26,8 @@ import java.util.Set;
  */
 @Data
 @Entity
-@Table(name = "category")
-public class Category implements Serializable {
+@Table(name = "reader_e_book")
+public class ReaderEBook implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -39,22 +37,25 @@ public class Category implements Serializable {
     private Integer id;
     @Basic(optional = false)
     @NotNull
-    @Size(min = 1, max = 255)
-    @Column(name = "name")
-    private String name;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "categoryId")
-    private Set<CategoryBook> categoryBookSet;
+    @Column(name = "duration")
+    private int duration;
+    @JoinColumn(name = "e_book_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private EBook eBookId;
+    @JoinColumn(name = "reader_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private Reader readerId;
 
-    public Category() {
+    public ReaderEBook() {
     }
 
-    public Category(Integer id) {
+    public ReaderEBook(Integer id) {
         this.id = id;
     }
 
-    public Category(Integer id, String name) {
+    public ReaderEBook(Integer id, int duration) {
         this.id = id;
-        this.name = name;
+        this.duration = duration;
     }
 
     @Override
@@ -67,10 +68,10 @@ public class Category implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Category)) {
+        if (!(object instanceof ReaderEBook)) {
             return false;
         }
-        Category other = (Category) object;
+        ReaderEBook other = (ReaderEBook) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -79,7 +80,7 @@ public class Category implements Serializable {
 
     @Override
     public String toString() {
-        return "com.tnc.library.pojo.Category[ id=" + id + " ]";
+        return "com.tnc.library.pojo.ReaderEBook[ id=" + id + " ]";
     }
     
 }

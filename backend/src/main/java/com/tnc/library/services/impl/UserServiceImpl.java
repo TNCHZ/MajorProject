@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
     private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    private UserRepository userRepo;
+    private UserRepository userRepository;
 
     @Transactional
     @Override
@@ -48,32 +48,32 @@ public class UserServiceImpl implements UserService {
             u.setPassword(this.passwordEncoder.encode(u.getPassword()));
         }else if(u.getUsername() != null)
         {
-            Optional<User> userSaved = this.userRepo.findByUsername(u.getUsername());
+            Optional<User> userSaved = this.userRepository.findByUsername(u.getUsername());
             userSaved.ifPresent(user -> u.setPassword(user.getPassword()));
         }
-        return this.userRepo.save(u);
+        return this.userRepository.save(u);
     }
 
     @Override
     public User getUserByUsername(String username) {
-        Optional<User> user = this.userRepo.findByUsername(username);
+        Optional<User> user = this.userRepository.findByUsername(username);
         return user.orElse(null);
     }
 
     @Override
     public User getUserByUserId(int id) {
-        Optional<User> user = this.userRepo.findById(id);
+        Optional<User> user = this.userRepository.findById(id);
         return user.orElse(null);
     }
 
     @Override
     public List<User> getAllUsers() {
-        return this.userRepo.findAll();
+        return this.userRepository.findAll();
     }
 
     @Override
     public boolean authenticate(String username, String password) {
-        Optional<User> u = this.userRepo.findByUsername(username);
+        Optional<User> u = this.userRepository.findByUsername(username);
         if (u.isPresent()) {
             User user = u.get();
             return passwordEncoder.matches(password, user.getPassword());
@@ -84,7 +84,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteUser(User u) {
-        this.userRepo.delete(u);
+        this.userRepository.delete(u);
     }
 
     @Override

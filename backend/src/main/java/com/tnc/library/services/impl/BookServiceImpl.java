@@ -5,6 +5,10 @@ import com.tnc.library.respositories.BookRepository;
 import com.tnc.library.services.BookService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -13,29 +17,35 @@ import java.util.Optional;
 public class BookServiceImpl implements BookService {
 
     @Autowired
-    private BookRepository bookRepo;
+    private BookRepository bookRepository;
 
     @Override
     @Transactional
     public Book addOrUpdateBook(Book b) {
-        return this.bookRepo.save(b);
+        return this.bookRepository.save(b);
     }
 
     @Override
     public Book getBookByTitle(String title) {
-        Optional<Book> book = this.bookRepo.findBookByTitle(title);
+        Optional<Book> book = this.bookRepository.findBookByTitle(title);
         return book.orElse(null);
     }
 
     @Override
     public Book getBookByBookId(int id) {
-        Optional<Book> book = this.bookRepo.findById(id);
+        Optional<Book> book = this.bookRepository.findById(id);
         return book.orElse(null);
     }
 
     @Override
     @Transactional
     public void deleteBook(Book b) {
-        this.bookRepo.delete(b);
+        this.bookRepository.delete(b);
+    }
+
+    @Override
+    public Page<Book> getBooks(int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        return this.bookRepository.findAllBook(pageable);
     }
 }

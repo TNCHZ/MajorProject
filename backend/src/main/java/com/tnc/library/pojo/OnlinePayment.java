@@ -5,17 +5,12 @@
 package com.tnc.library.pojo;
 
 import jakarta.persistence.Basic;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -26,7 +21,6 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.Set;
 
 /**
  *
@@ -34,59 +28,58 @@ import java.util.Set;
  */
 @Data
 @Entity
-@Table(name = "payment")
-public class Payment implements Serializable {
+@Table(name = "online_payment")
+public class OnlinePayment implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
+    @NotNull
     @Column(name = "id")
     private Integer id;
     @Basic(optional = false)
     @NotNull
-    @Size(min = 1, max = 255)
-    @Column(name = "title")
-    private String title;
-    @Basic(optional = false)
-    @NotNull
-    @Column(name = "payment_date")
+    @Size(min = 1, max = 100)
+    @Column(name = "transaction_ref")
+    private String transactionRef;
+    @Size(max = 100)
+    @Column(name = "transaction_id")
+    private String transactionId;
+    @Size(max = 255)
+    @Column(name = "order_info")
+    private String orderInfo;
+    @Size(max = 10)
+    @Column(name = "response_code")
+    private String responseCode;
+    @Size(max = 20)
+    @Column(name = "bank_code")
+    private String bankCode;
+    @Column(name = "pay_date")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date paymentDate;
+    private Date payDate;
+    @Size(max = 10)
+    @Column(name = "status")
+    private String status;
     @Basic(optional = false)
     @NotNull
-    @Column(name = "amount")
-    private float amount;
-    @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 10)
-    @Column(name = "method")
-    private String method;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "paymentId")
-    private Set<MembershipRenewal> membershipRenewalSet;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "payment")
-    private OnlinePayment onlinePayment;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "paymentId")
-    private Set<Fine> fineSet;
-    @JoinColumn(name = "reader_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Reader readerId;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "payment")
-    private DirectPayment directPayment;
+    @Size(min = 1, max = 50)
+    @Column(name = "provider")
+    private String provider;
+    @JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
+    @OneToOne(optional = false)
+    private Payment payment;
 
-    public Payment() {
+    public OnlinePayment() {
     }
 
-    public Payment(Integer id) {
+    public OnlinePayment(Integer id) {
         this.id = id;
     }
 
-    public Payment(Integer id, String title, Date paymentDate, float amount, String method) {
+    public OnlinePayment(Integer id, String transactionRef, String provider) {
         this.id = id;
-        this.title = title;
-        this.paymentDate = paymentDate;
-        this.amount = amount;
-        this.method = method;
+        this.transactionRef = transactionRef;
+        this.provider = provider;
     }
 
     @Override
@@ -99,10 +92,10 @@ public class Payment implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Payment)) {
+        if (!(object instanceof OnlinePayment)) {
             return false;
         }
-        Payment other = (Payment) object;
+        OnlinePayment other = (OnlinePayment) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -111,7 +104,7 @@ public class Payment implements Serializable {
 
     @Override
     public String toString() {
-        return "com.tnc.library.pojo.Payment[ id=" + id + " ]";
+        return "com.tnc.library.pojo.OnlinePayment[ id=" + id + " ]";
     }
     
 }

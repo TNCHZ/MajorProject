@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service;
 public class LibrarianServiceImpl implements LibrarianService {
 
     @Autowired
-    private LibrarianRepository librarianRepo;
+    private LibrarianRepository librarianRepository;
 
     @Override
     @Transactional
     public Librarian addOrUpdateLibrarian(Librarian l) {
-        return this.librarianRepo.save(l);
+        return this.librarianRepository.save(l);
     }
 }

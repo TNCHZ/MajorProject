@@ -34,15 +34,8 @@ import java.util.Set;
  */
 @Data
 @Entity
-@Table(name = "borrowslip")
-@NamedQueries({
-    @NamedQuery(name = "Borrowslip.findAll", query = "SELECT b FROM Borrowslip b"),
-    @NamedQuery(name = "Borrowslip.findById", query = "SELECT b FROM Borrowslip b WHERE b.id = :id"),
-    @NamedQuery(name = "Borrowslip.findByBorrowDate", query = "SELECT b FROM Borrowslip b WHERE b.borrowDate = :borrowDate"),
-    @NamedQuery(name = "Borrowslip.findByDueDate", query = "SELECT b FROM Borrowslip b WHERE b.dueDate = :dueDate"),
-    @NamedQuery(name = "Borrowslip.findByReturnDate", query = "SELECT b FROM Borrowslip b WHERE b.returnDate = :returnDate"),
-    @NamedQuery(name = "Borrowslip.findByStatus", query = "SELECT b FROM Borrowslip b WHERE b.status = :status")})
-public class Borrowslip implements Serializable {
+@Table(name = "borrow_slip")
+public class BorrowSlip implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -74,20 +67,20 @@ public class Borrowslip implements Serializable {
     @Size(max = 65535)
     @Column(name = "note")
     private String note;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "borrowSlipId")
-    private Set<BorrowslipPrintedbook> borrowslipPrintedbookSet;
     @JoinColumn(name = "reader_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Reader readerId;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "borrowSlipId")
+    private Set<PrintedBookBorrowSlip> printedBookBorrowSlipSet;
 
-    public Borrowslip() {
+    public BorrowSlip() {
     }
 
-    public Borrowslip(Integer id) {
+    public BorrowSlip(Integer id) {
         this.id = id;
     }
 
-    public Borrowslip(Integer id, Date borrowDate, Date dueDate, Date returnDate, String status) {
+    public BorrowSlip(Integer id, Date borrowDate, Date dueDate, Date returnDate, String status) {
         this.id = id;
         this.borrowDate = borrowDate;
         this.dueDate = dueDate;
@@ -105,10 +98,10 @@ public class Borrowslip implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Borrowslip)) {
+        if (!(object instanceof BorrowSlip)) {
             return false;
         }
-        Borrowslip other = (Borrowslip) object;
+        BorrowSlip other = (BorrowSlip) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -117,7 +110,7 @@ public class Borrowslip implements Serializable {
 
     @Override
     public String toString() {
-        return "com.tnc.library.pojo.Borrowslip[ id=" + id + " ]";
+        return "com.tnc.library.pojo.BorrowSlip[ id=" + id + " ]";
     }
     
 }

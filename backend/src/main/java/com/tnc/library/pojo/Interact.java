@@ -28,10 +28,6 @@ import java.io.Serializable;
 @Data
 @Entity
 @Table(name = "interact")
-@NamedQueries({
-    @NamedQuery(name = "Interact.findAll", query = "SELECT i FROM Interact i"),
-    @NamedQuery(name = "Interact.findById", query = "SELECT i FROM Interact i WHERE i.id = :id"),
-    @NamedQuery(name = "Interact.findByReact", query = "SELECT i FROM Interact i WHERE i.react = :react")})
 public class Interact implements Serializable {
 
     private static final long serialVersionUID = 1L;

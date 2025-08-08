@@ -28,15 +28,8 @@ import java.util.Set;
  */
 @Data
 @Entity
-@Table(name = "printedbook")
-@NamedQueries({
-    @NamedQuery(name = "Printedbook.findAll", query = "SELECT p FROM Printedbook p"),
-    @NamedQuery(name = "Printedbook.findById", query = "SELECT p FROM Printedbook p WHERE p.id = :id"),
-    @NamedQuery(name = "Printedbook.findByShelfLocation", query = "SELECT p FROM Printedbook p WHERE p.shelfLocation = :shelfLocation"),
-    @NamedQuery(name = "Printedbook.findByStatus", query = "SELECT p FROM Printedbook p WHERE p.status = :status"),
-    @NamedQuery(name = "Printedbook.findByTotalCopy", query = "SELECT p FROM Printedbook p WHERE p.totalCopy = :totalCopy"),
-    @NamedQuery(name = "Printedbook.findByBorrowCount", query = "SELECT p FROM Printedbook p WHERE p.borrowCount = :borrowCount")})
-public class Printedbook implements Serializable {
+@Table(name = "printed_book")
+public class PrintedBook implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -62,20 +55,20 @@ public class Printedbook implements Serializable {
     @NotNull
     @Column(name = "borrow_count")
     private int borrowCount;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "printedBookId")
-    private Set<BorrowslipPrintedbook> borrowslipPrintedbookSet;
     @JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
     @OneToOne(optional = false)
     private Book book;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "printedBookId")
+    private Set<PrintedBookBorrowSlip> printedBookBorrowSlipSet;
 
-    public Printedbook() {
+    public PrintedBook() {
     }
 
-    public Printedbook(Integer id) {
+    public PrintedBook(Integer id) {
         this.id = id;
     }
 
-    public Printedbook(Integer id, String shelfLocation, String status, int totalCopy, int borrowCount) {
+    public PrintedBook(Integer id, String shelfLocation, String status, int totalCopy, int borrowCount) {
         this.id = id;
         this.shelfLocation = shelfLocation;
         this.status = status;
@@ -93,10 +86,10 @@ public class Printedbook implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Printedbook)) {
+        if (!(object instanceof PrintedBook)) {
             return false;
         }
-        Printedbook other = (Printedbook) object;
+        PrintedBook other = (PrintedBook) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -105,7 +98,7 @@ public class Printedbook implements Serializable {
 
     @Override
     public String toString() {
-        return "com.tnc.library.pojo.Printedbook[ id=" + id + " ]";
+        return "com.tnc.library.pojo.PrintedBook[ id=" + id + " ]";
     }
     
 }

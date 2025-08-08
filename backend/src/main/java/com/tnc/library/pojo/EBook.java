@@ -28,16 +28,8 @@ import java.util.Set;
  */
 @Data
 @Entity
-@Table(name = "ebook")
-@NamedQueries({
-    @NamedQuery(name = "Ebook.findAll", query = "SELECT e FROM Ebook e"),
-    @NamedQuery(name = "Ebook.findById", query = "SELECT e FROM Ebook e WHERE e.id = :id"),
-    @NamedQuery(name = "Ebook.findByImage", query = "SELECT e FROM Ebook e WHERE e.image = :image"),
-    @NamedQuery(name = "Ebook.findByFileUrl", query = "SELECT e FROM Ebook e WHERE e.fileUrl = :fileUrl"),
-    @NamedQuery(name = "Ebook.findByFormat", query = "SELECT e FROM Ebook e WHERE e.format = :format"),
-    @NamedQuery(name = "Ebook.findByLisence", query = "SELECT e FROM Ebook e WHERE e.lisence = :lisence"),
-    @NamedQuery(name = "Ebook.findByTotalView", query = "SELECT e FROM Ebook e WHERE e.totalView = :totalView")})
-public class Ebook implements Serializable {
+@Table(name = "e_book")
+public class EBook implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -63,31 +55,31 @@ public class Ebook implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
-    @Column(name = "lisence")
-    private String lisence;
+    @Column(name = "licence")
+    private String licence;
     @Basic(optional = false)
     @NotNull
     @Column(name = "total_view")
     private int totalView;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "eBookId")
-    private Set<ReaderEbook> readerEbookSet;
+    private Set<ReaderEBook> readerEBookSet;
     @JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
     @OneToOne(optional = false)
     private Book book;
 
-    public Ebook() {
+    public EBook() {
     }
 
-    public Ebook(Integer id) {
+    public EBook(Integer id) {
         this.id = id;
     }
 
-    public Ebook(Integer id, String image, String fileUrl, String format, String lisence, int totalView) {
+    public EBook(Integer id, String image, String fileUrl, String format, String licence, int totalView) {
         this.id = id;
         this.image = image;
         this.fileUrl = fileUrl;
         this.format = format;
-        this.lisence = lisence;
+        this.licence = licence;
         this.totalView = totalView;
     }
 
@@ -101,10 +93,10 @@ public class Ebook implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Ebook)) {
+        if (!(object instanceof EBook)) {
             return false;
         }
-        Ebook other = (Ebook) object;
+        EBook other = (EBook) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -113,7 +105,7 @@ public class Ebook implements Serializable {
 
     @Override
     public String toString() {
-        return "com.tnc.library.pojo.Ebook[ id=" + id + " ]";
+        return "com.tnc.library.pojo.EBook[ id=" + id + " ]";
     }
     
 }

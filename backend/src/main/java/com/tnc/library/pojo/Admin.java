@@ -18,9 +18,6 @@ import java.io.Serializable;
 @Data
 @Entity
 @Table(name = "admin")
-@NamedQueries({
-    @NamedQuery(name = "Admin.findAll", query = "SELECT a FROM Admin a"),
-    @NamedQuery(name = "Admin.findById", query = "SELECT a FROM Admin a WHERE a.id = :id")})
 public class Admin implements Serializable {
 
     private static final long serialVersionUID = 1L;

@@ -8,6 +8,8 @@ import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
@@ -18,6 +20,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Set;
 
 /**
@@ -26,44 +29,39 @@ import java.util.Set;
  */
 @Data
 @Entity
-@Table(name = "author")
-@NamedQueries({
-    @NamedQuery(name = "Author.findAll", query = "SELECT a FROM Author a"),
-    @NamedQuery(name = "Author.findById", query = "SELECT a FROM Author a WHERE a.id = :id"),
-    @NamedQuery(name = "Author.findByName", query = "SELECT a FROM Author a WHERE a.name = :name"),
-    @NamedQuery(name = "Author.findByCountry", query = "SELECT a FROM Author a WHERE a.country = :country"),
-    @NamedQuery(name = "Author.findByBirthday", query = "SELECT a FROM Author a WHERE a.birthday = :birthday")})
-public class Author implements Serializable {
+@Table(name = "type_membership")
+public class TypeMembership implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
-    @NotNull
     @Column(name = "id")
     private Integer id;
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
-    @Column(name = "name")
-    private String name;
-    @Size(max = 255)
-    @Column(name = "country")
-    private String country;
-    @Column(name = "birthday")
-    private Integer birthday;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "authorId")
-    private Set<AuthorBook> authorBookSet;
+    @Column(name = "title")
+    private String title;
+    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+    @Basic(optional = false)
+    @NotNull
+    @Column(name = "price")
+    private BigDecimal price;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "typeId")
+    private Set<MembershipRenewal> membershipRenewalSet;
 
-    public Author() {
+    public TypeMembership() {
     }
 
-    public Author(Integer id) {
+    public TypeMembership(Integer id) {
         this.id = id;
     }
 
-    public Author(Integer id, String name) {
+    public TypeMembership(Integer id, String title, BigDecimal price) {
         this.id = id;
-        this.name = name;
+        this.title = title;
+        this.price = price;
     }
 
     @Override
@@ -76,10 +74,10 @@ public class Author implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Author)) {
+        if (!(object instanceof TypeMembership)) {
             return false;
         }
-        Author other = (Author) object;
+        TypeMembership other = (TypeMembership) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -88,7 +86,7 @@ public class Author implements Serializable {
 
     @Override
     public String toString() {
-        return "com.tnc.library.pojo.Author[ id=" + id + " ]";
+        return "com.tnc.library.pojo.TypeMembership[ id=" + id + " ]";
     }
     
 }

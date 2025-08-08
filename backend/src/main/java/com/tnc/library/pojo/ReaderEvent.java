@@ -26,9 +26,6 @@ import java.io.Serializable;
 @Data
 @Entity
 @Table(name = "reader_event")
-@NamedQueries({
-    @NamedQuery(name = "ReaderEvent.findAll", query = "SELECT r FROM ReaderEvent r"),
-    @NamedQuery(name = "ReaderEvent.findById", query = "SELECT r FROM ReaderEvent r WHERE r.id = :id")})
 public class ReaderEvent implements Serializable {
 
     private static final long serialVersionUID = 1L;

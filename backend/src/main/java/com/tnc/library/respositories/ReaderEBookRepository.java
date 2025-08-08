@@ -1,9 +1,10 @@
 package com.tnc.library.respositories;
 
-import com.tnc.library.pojo.AuthorBook;
+
+import com.tnc.library.pojo.ReaderEBook;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface AuthorBookRepository extends JpaRepository<AuthorBook, Integer> {
+public interface ReaderEBookRepository extends JpaRepository<ReaderEBook, Integer> {
 }

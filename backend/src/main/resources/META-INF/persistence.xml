@@ -20,6 +20,16 @@
     <class>com.tnc.library.pojo.Category</class>
     <class>com.tnc.library.pojo.Author</class>
     <class>com.tnc.library.pojo.AuthorBook</class>
+    <class>com.tnc.library.pojo.BorrowSlip</class>
+    <class>com.tnc.library.pojo.MembershipRenewal</class>
+    <class>com.tnc.library.pojo.DirectPayment</class>
+    <class>com.tnc.library.pojo.PrintedBook</class>
+    <class>com.tnc.library.pojo.ReaderEBook</class>
+    <class>com.tnc.library.pojo.EBook</class>
+    <class>com.tnc.library.pojo.PrintedBookBorrowSlip</class>
+    <class>com.tnc.library.pojo.OnlinePayment</class>
+    <class>com.tnc.library.pojo.Fine</class>
+    <class>com.tnc.library.pojo.TypeMembership</class>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/librarydb?zeroDateTimeBehavior=CONVERT_TO_NULL"/>
       <property name="javax.persistence.jdbc.user" value="root"/>

@@ -20,10 +20,6 @@ import java.util.Set;
 @Data
 @Entity
 @Table(name = "librarian")
-@NamedQueries({
-    @NamedQuery(name = "Librarian.findAll", query = "SELECT l FROM Librarian l"),
-    @NamedQuery(name = "Librarian.findById", query = "SELECT l FROM Librarian l WHERE l.id = :id"),
-    @NamedQuery(name = "Librarian.findByStartDate", query = "SELECT l FROM Librarian l WHERE l.startDate = :startDate")})
 public class Librarian implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -44,6 +40,8 @@ public class Librarian implements Serializable {
     @JsonIgnore
     @MapsId
     private User user;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "librarianId")
+    private Set<DirectPayment> directPaymentSet;
 
     public Librarian() {
     }

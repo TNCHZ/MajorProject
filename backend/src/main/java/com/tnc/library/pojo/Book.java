@@ -37,20 +37,6 @@ import java.util.Set;
 @Data
 @Entity
 @Table(name = "book")
-@NamedQueries({
-    @NamedQuery(name = "Book.findAll", query = "SELECT b FROM Book b"),
-    @NamedQuery(name = "Book.findById", query = "SELECT b FROM Book b WHERE b.id = :id"),
-    @NamedQuery(name = "Book.findByTitle", query = "SELECT b FROM Book b WHERE b.title = :title"),
-    @NamedQuery(name = "Book.findByPublisher", query = "SELECT b FROM Book b WHERE b.publisher = :publisher"),
-    @NamedQuery(name = "Book.findByPublishedDate", query = "SELECT b FROM Book b WHERE b.publishedDate = :publishedDate"),
-    @NamedQuery(name = "Book.findByPrice", query = "SELECT b FROM Book b WHERE b.price = :price"),
-    @NamedQuery(name = "Book.findByIsbn10", query = "SELECT b FROM Book b WHERE b.isbn10 = :isbn10"),
-    @NamedQuery(name = "Book.findByIsbn13", query = "SELECT b FROM Book b WHERE b.isbn13 = :isbn13"),
-    @NamedQuery(name = "Book.findByIsPrinted", query = "SELECT b FROM Book b WHERE b.isPrinted = :isPrinted"),
-    @NamedQuery(name = "Book.findByIsElectronic", query = "SELECT b FROM Book b WHERE b.isElectronic = :isElectronic"),
-    @NamedQuery(name = "Book.findByCreatedDate", query = "SELECT b FROM Book b WHERE b.createdDate = :createdDate"),
-    @NamedQuery(name = "Book.findByUpdatedDate", query = "SELECT b FROM Book b WHERE b.updatedDate = :updatedDate"),
-    @NamedQuery(name = "Book.findByLanguage", query = "SELECT b FROM Book b WHERE b.language = :language")})
 public class Book implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -84,6 +70,11 @@ public class Book implements Serializable {
     @NotNull
     @Column(name = "price")
     private BigDecimal price;
+    @Basic(optional = false)
+    @NotNull
+    @Size(min = 1, max = 255)
+    @Column(name = "author")
+    private String author;
     @Size(max = 10)
     @Column(name = "isbn_10")
     private String isbn10;
@@ -110,16 +101,14 @@ public class Book implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "bookId")
     private Set<CategoryBook> categoryBookSet;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "book")
-    private Printedbook printedbook;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "bookId")
-    private Set<AuthorBook> authorBookSet;
+    private EBook eBook;
     @JoinColumn(name = "librarian_id", referencedColumnName = "id")
     @ManyToOne
     private Librarian librarianId;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "bookId")
     private Set<Interact> interactSet;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "book")
-    private Ebook ebook;
+    private PrintedBook printedBook;
 
     public Book() {
     }
@@ -128,13 +117,14 @@ public class Book implements Serializable {
         this.id = id;
     }
 
-    public Book(Integer id, String title, String description, String publisher, int publishedDate, BigDecimal price, boolean isPrinted, boolean isElectronic) {
+    public Book(Integer id, String title, String description, String publisher, int publishedDate, BigDecimal price, String author, boolean isPrinted, boolean isElectronic) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.publisher = publisher;
         this.publishedDate = publishedDate;
         this.price = price;
+        this.author = author;
         this.isPrinted = isPrinted;
         this.isElectronic = isElectronic;
     }

@@ -11,14 +11,19 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  *
@@ -26,12 +31,8 @@ import java.io.Serializable;
  */
 @Data
 @Entity
-@Table(name = "reader_ebook")
-@NamedQueries({
-    @NamedQuery(name = "ReaderEbook.findAll", query = "SELECT r FROM ReaderEbook r"),
-    @NamedQuery(name = "ReaderEbook.findById", query = "SELECT r FROM ReaderEbook r WHERE r.id = :id"),
-    @NamedQuery(name = "ReaderEbook.findByDuration", query = "SELECT r FROM ReaderEbook r WHERE r.duration = :duration")})
-public class ReaderEbook implements Serializable {
+@Table(name = "fine")
+public class Fine implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -41,25 +42,38 @@ public class ReaderEbook implements Serializable {
     private Integer id;
     @Basic(optional = false)
     @NotNull
-    @Column(name = "duration")
-    private int duration;
-    @JoinColumn(name = "e_book_id", referencedColumnName = "id")
+    @Lob
+    @Size(min = 1, max = 65535)
+    @Column(name = "reason")
+    private String reason;
+    @Basic(optional = false)
+    @NotNull
+    @Column(name = "issued_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date issuedAt;
+    @Basic(optional = false)
+    @NotNull
+    @Column(name = "is_paid")
+    private boolean isPaid;
+    @JoinColumn(name = "payment_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
-    private Ebook eBookId;
+    private Payment paymentId;
     @JoinColumn(name = "reader_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Reader readerId;
 
-    public ReaderEbook() {
+    public Fine() {
     }
 
-    public ReaderEbook(Integer id) {
+    public Fine(Integer id) {
         this.id = id;
     }
 
-    public ReaderEbook(Integer id, int duration) {
+    public Fine(Integer id, String reason, Date issuedAt, boolean isPaid) {
         this.id = id;
-        this.duration = duration;
+        this.reason = reason;
+        this.issuedAt = issuedAt;
+        this.isPaid = isPaid;
     }
 
     @Override
@@ -72,10 +86,10 @@ public class ReaderEbook implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof ReaderEbook)) {
+        if (!(object instanceof Fine)) {
             return false;
         }
-        ReaderEbook other = (ReaderEbook) object;
+        Fine other = (Fine) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -84,7 +98,7 @@ public class ReaderEbook implements Serializable {
 
     @Override
     public String toString() {
-        return "com.tnc.library.pojo.ReaderEbook[ id=" + id + " ]";
+        return "com.tnc.library.pojo.Fine[ id=" + id + " ]";
     }
     
 }

@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class AdminServiceImpl implements AdminService {
     @Autowired
-    private AdminRepository adminRepo;
+    private AdminRepository adminRepository;
 
     @Override
     @Transactional
     public Admin addOrUpdateAdmin(Admin a) {
-        return this.adminRepo.save(a);
+        return this.adminRepository.save(a);
     }
 }

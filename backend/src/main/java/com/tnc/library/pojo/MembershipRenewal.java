@@ -5,26 +5,23 @@
 package com.tnc.library.pojo;
 
 import jakarta.persistence.Basic;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.Set;
 
 /**
  *
@@ -32,8 +29,8 @@ import java.util.Set;
  */
 @Data
 @Entity
-@Table(name = "event")
-public class Event implements Serializable {
+@Table(name = "membership_renewal")
+public class MembershipRenewal implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -43,59 +40,38 @@ public class Event implements Serializable {
     private Integer id;
     @Basic(optional = false)
     @NotNull
-    @Size(min = 1, max = 255)
-    @Column(name = "name")
-    private String name;
-    @Basic(optional = false)
-    @NotNull
     @Column(name = "start_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date startDate;
     @Basic(optional = false)
     @NotNull
-    @Column(name = "end_date")
+    @Column(name = "expire_date")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date endDate;
-    @Basic(optional = false)
-    @NotNull
-    @Lob
-    @Size(min = 1, max = 65535)
-    @Column(name = "description")
-    private String description;
-    @Column(name = "created_date")
+    private Date expireDate;
+    @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date createdDate;
-    @Column(name = "updated_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date updatedDate;
-    @Basic(optional = false)
-    @NotNull
-    @Column(name = "status")
-    private boolean status;
-    @Basic(optional = false)
-    @NotNull
-    @Column(name = "max_participants")
-    private int maxParticipants;
-    @Column(name = "current_participants")
-    private Integer currentParticipants;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "eventId")
-    private Set<ReaderEvent> readerEventSet;
+    private Date createdAt;
+    @JoinColumn(name = "payment_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private Payment paymentId;
+    @JoinColumn(name = "reader_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private Reader readerId;
+    @JoinColumn(name = "type_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private TypeMembership typeId;
 
-    public Event() {
+    public MembershipRenewal() {
     }
 
-    public Event(Integer id) {
+    public MembershipRenewal(Integer id) {
         this.id = id;
     }
 
-    public Event(Integer id, String name, Date startDate, Date endDate, String description, boolean status, int maxParticipants) {
+    public MembershipRenewal(Integer id, Date startDate, Date expireDate) {
         this.id = id;
-        this.name = name;
         this.startDate = startDate;
-        this.endDate = endDate;
-        this.description = description;
-        this.status = status;
-        this.maxParticipants = maxParticipants;
+        this.expireDate = expireDate;
     }
 
     @Override
@@ -108,10 +84,10 @@ public class Event implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Event)) {
+        if (!(object instanceof MembershipRenewal)) {
             return false;
         }
-        Event other = (Event) object;
+        MembershipRenewal other = (MembershipRenewal) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -120,7 +96,7 @@ public class Event implements Serializable {
 
     @Override
     public String toString() {
-        return "com.tnc.library.pojo.Event[ id=" + id + " ]";
+        return "com.tnc.library.pojo.MembershipRenewal[ id=" + id + " ]";
     }
     
 }

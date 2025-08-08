@@ -10,7 +10,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.Date;
 import java.util.Set;
 
 /**
@@ -20,12 +19,6 @@ import java.util.Set;
 @Data
 @Entity
 @Table(name = "reader")
-@NamedQueries({
-    @NamedQuery(name = "Reader.findAll", query = "SELECT r FROM Reader r"),
-    @NamedQuery(name = "Reader.findById", query = "SELECT r FROM Reader r WHERE r.id = :id"),
-    @NamedQuery(name = "Reader.findByMemberDate", query = "SELECT r FROM Reader r WHERE r.memberDate = :memberDate"),
-    @NamedQuery(name = "Reader.findByMemberExpire", query = "SELECT r FROM Reader r WHERE r.memberExpire = :memberExpire"),
-    @NamedQuery(name = "Reader.findByIsMember", query = "SELECT r FROM Reader r WHERE r.isMember = :isMember")})
 public class Reader implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -36,29 +29,23 @@ public class Reader implements Serializable {
     private Integer id;
     @Basic(optional = false)
     @NotNull
-    @Column(name = "member_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date memberDate;
-    @Basic(optional = false)
-    @NotNull
-    @Column(name = "member_expire")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date memberExpire;
-    @Basic(optional = false)
-    @NotNull
     @Column(name = "is_member")
     private boolean isMember;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "readerId")
+    private Set<ReaderEBook> readerEBookSet;
     @JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
     @OneToOne(optional = false)
     @JsonIgnore
     @MapsId
     private User user;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "readerId")
+    private Set<MembershipRenewal> membershipRenewalSet;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "readerId")
     private Set<Interact> interactSet;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "readerId")
-    private Set<ReaderEbook> readerEbookSet;
+    private Set<BorrowSlip> borrowSlipSet;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "readerId")
-    private Set<Borrowslip> borrowslipSet;
+    private Set<Fine> fineSet;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "readerId")
     private Set<Payment> paymentSet;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "readerId")
@@ -71,10 +58,8 @@ public class Reader implements Serializable {
         this.id = id;
     }
 
-    public Reader(Integer id, Date memberDate, Date memberExpire, boolean isMember) {
+    public Reader(Integer id, boolean isMember) {
         this.id = id;
-        this.memberDate = memberDate;
-        this.memberExpire = memberExpire;
         this.isMember = isMember;
     }
 

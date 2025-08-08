@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class ReaderServiceImpl implements ReaderService {
     @Autowired
-    private ReaderRepository readerRepo;
+    private ReaderRepository readerRepository;
 
     @Override
     @Transactional
     public Reader addOrUpdateReader(Reader r) {
-        return this.readerRepo.save(r);
+        return this.readerRepository.save(r);
     }
 }

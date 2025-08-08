@@ -7,17 +7,18 @@ package com.tnc.library.pojo;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+
 
 import java.io.Serializable;
 
@@ -27,29 +28,30 @@ import java.io.Serializable;
  */
 @Data
 @Entity
-@Table(name = "borrowslip_printedbook")
-@NamedQueries({
-    @NamedQuery(name = "BorrowslipPrintedbook.findAll", query = "SELECT b FROM BorrowslipPrintedbook b"),
-    @NamedQuery(name = "BorrowslipPrintedbook.findById", query = "SELECT b FROM BorrowslipPrintedbook b WHERE b.id = :id")})
-public class BorrowslipPrintedbook implements Serializable {
+@Table(name = "direct_payment")
+public class DirectPayment implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
+    @NotNull
     @Column(name = "id")
     private Integer id;
-    @JoinColumn(name = "borrow_slip_id", referencedColumnName = "id")
+    @Lob
+    @Size(max = 65535)
+    @Column(name = "notes")
+    private String notes;
+    @JoinColumn(name = "librarian_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
-    private Borrowslip borrowSlipId;
-    @JoinColumn(name = "printed_book_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Printedbook printedBookId;
+    private Librarian librarianId;
+    @JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
+    @OneToOne(optional = false)
+    private Payment payment;
 
-    public BorrowslipPrintedbook() {
+    public DirectPayment() {
     }
 
-    public BorrowslipPrintedbook(Integer id) {
+    public DirectPayment(Integer id) {
         this.id = id;
     }
 
@@ -63,10 +65,10 @@ public class BorrowslipPrintedbook implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof BorrowslipPrintedbook)) {
+        if (!(object instanceof DirectPayment)) {
             return false;
         }
-        BorrowslipPrintedbook other = (BorrowslipPrintedbook) object;
+        DirectPayment other = (DirectPayment) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -75,7 +77,7 @@ public class BorrowslipPrintedbook implements Serializable {
 
     @Override
     public String toString() {
-        return "com.tnc.library.pojo.BorrowslipPrintedbook[ id=" + id + " ]";
+        return "com.tnc.library.pojo.DirectPayment[ id=" + id + " ]";
     }
     
 }

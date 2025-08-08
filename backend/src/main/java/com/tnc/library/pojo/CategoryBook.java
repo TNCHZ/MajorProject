@@ -26,9 +26,6 @@ import java.io.Serializable;
 @Data
 @Entity
 @Table(name = "category_book")
-@NamedQueries({
-    @NamedQuery(name = "CategoryBook.findAll", query = "SELECT c FROM CategoryBook c"),
-    @NamedQuery(name = "CategoryBook.findById", query = "SELECT c FROM CategoryBook c WHERE c.id = :id")})
 public class CategoryBook implements Serializable {
 
     private static final long serialVersionUID = 1L;
