@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface EBookRepository extends JpaRepository<EBook, Integer> {
-    Page<EBook> findAllEBook(Pageable pageable);
+    Page<EBook> findAll(Pageable pageable);
 }

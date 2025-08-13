@@ -37,6 +37,6 @@ public class PrintedBookServiceImpl implements PrintedBookService {
     @Override
     public Page<PrintedBook> getPrintedBook(int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
-        return this.printedBookRepository.findAllPrintedBook(pageable);
+        return this.printedBookRepository.findAll(pageable);
     }
 }

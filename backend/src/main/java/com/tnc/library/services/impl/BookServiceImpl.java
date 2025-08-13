@@ -1,5 +1,8 @@
 package com.tnc.library.services.impl;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import com.tnc.library.configs.CloudinaryConfig;
 import com.tnc.library.pojo.Book;
 import com.tnc.library.respositories.BookRepository;
 import com.tnc.library.services.BookService;
@@ -11,10 +14,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Service
 public class BookServiceImpl implements BookService {
+    @Autowired
+    private Cloudinary cloudinary;
 
     @Autowired
     private BookRepository bookRepository;
@@ -22,6 +31,17 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public Book addOrUpdateBook(Book b) {
+
+        if(b.getFile() != null || !b.getFile().isEmpty())
+        {
+            try{
+                Map res = cloudinary.uploader().upload(b.getFile().getBytes(), ObjectUtils.asMap("resource_type", "image"));
+                b.setImage(res.get("secure_url").toString());
+            } catch (IOException ex) {
+                Logger.getLogger(UserServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
         return this.bookRepository.save(b);
     }
 
@@ -46,6 +66,6 @@ public class BookServiceImpl implements BookService {
     @Override
     public Page<Book> getBooks(int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
-        return this.bookRepository.findAllBook(pageable);
+        return this.bookRepository.findAll(pageable);
     }
 }

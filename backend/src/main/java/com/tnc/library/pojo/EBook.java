@@ -4,20 +4,12 @@
  */
 package com.tnc.library.pojo;
 
-import jakarta.persistence.Basic;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
 import java.util.Set;
@@ -37,11 +29,6 @@ public class EBook implements Serializable {
     @NotNull
     @Column(name = "id")
     private Integer id;
-    @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 255)
-    @Column(name = "image")
-    private String image;
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
@@ -65,7 +52,11 @@ public class EBook implements Serializable {
     private Set<ReaderEBook> readerEBookSet;
     @JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
     @OneToOne(optional = false)
+    @MapsId
     private Book book;
+    @Transient
+    @JsonIgnore
+    private MultipartFile file;
 
     public EBook() {
     }
@@ -74,9 +65,8 @@ public class EBook implements Serializable {
         this.id = id;
     }
 
-    public EBook(Integer id, String image, String fileUrl, String format, String licence, int totalView) {
+    public EBook(Integer id, String fileUrl, String format, String licence, int totalView) {
         this.id = id;
-        this.image = image;
         this.fileUrl = fileUrl;
         this.format = format;
         this.licence = licence;

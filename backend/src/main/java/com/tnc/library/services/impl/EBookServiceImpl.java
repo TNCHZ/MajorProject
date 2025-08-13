@@ -1,5 +1,7 @@
 package com.tnc.library.services.impl;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.tnc.library.pojo.Book;
 import com.tnc.library.pojo.EBook;
 import com.tnc.library.respositories.EBookRepository;
@@ -12,16 +14,31 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Service
 public class EBookServiceImpl implements EBookService {
     @Autowired
     private EBookRepository eBookRepository;
 
+    @Autowired
+    private Cloudinary cloudinary;
+
     @Transactional
     @Override
     public EBook addOrUpdateEBook(EBook b) {
+        if (b.getFile() != null && !b.getFile().isEmpty()) {
+            try{
+                Map res = cloudinary.uploader().upload(b.getFile().getBytes(), ObjectUtils.asMap("resource_type", "raw"));
+                b.setFileUrl(res.get("secure_url").toString());
+            } catch (IOException ex) {
+                Logger.getLogger(UserServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
         return this.eBookRepository.save(b);
     }
 
@@ -40,6 +57,6 @@ public class EBookServiceImpl implements EBookService {
     @Override
     public Page<EBook> getEBooks(int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
-        return this.eBookRepository.findAllEBook(pageable);
+        return this.eBookRepository.findAll(pageable);
     }
 }
