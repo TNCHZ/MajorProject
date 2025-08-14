@@ -8,6 +8,8 @@ public interface BookService {
 
     Book getBookByTitle(String title);
 
+    Book getBookByNameAuthorPublishedDate(String title, String author, int publishedDate);
+
     Book getBookByBookId(int id);
 
     void deleteBook(Book b);

@@ -52,6 +52,12 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    public Book getBookByNameAuthorPublishedDate(String title, String author, int publishedDate) {
+        Optional<Book> book = this.bookRepository.findBookByNameAuthorPublishedDate(title, author, publishedDate);
+        return book.orElse(null);
+    }
+
+    @Override
     public Book getBookByBookId(int id) {
         Optional<Book> book = this.bookRepository.findById(id);
         return book.orElse(null);
