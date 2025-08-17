@@ -4,6 +4,7 @@
  */
 package com.tnc.library.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -42,6 +43,7 @@ public class Category implements Serializable {
     @Size(min = 1, max = 255)
     @Column(name = "name")
     private String name;
+    @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "categoryId")
     private Set<CategoryBook> categoryBookSet;
 

@@ -52,8 +52,25 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    public Book findByIsbn(String isbn) {
+        if (isbn == null) {
+            return null;
+        }
+
+        if (isbn.length() == 10) {
+            Optional<Book> book = this.bookRepository.findByIsbn10(isbn);
+            return book.orElse(null);
+        } else if (isbn.length() == 13) {
+            Optional<Book> book = this.bookRepository.findByIsbn13(isbn);
+            return book.orElse(null);
+        }
+
+        return null;
+    }
+
+    @Override
     public Book getBookByNameAuthorPublishedDate(String title, String author, int publishedDate) {
-        Optional<Book> book = this.bookRepository.findBookByNameAuthorPublishedDate(title, author, publishedDate);
+        Optional<Book> book = this.bookRepository.findBookByTitleAndAuthorAndPublishedDate(title, author, publishedDate);
         return book.orElse(null);
     }
 

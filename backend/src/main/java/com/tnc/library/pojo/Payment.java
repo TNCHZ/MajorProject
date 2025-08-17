@@ -4,22 +4,8 @@
  */
 package com.tnc.library.pojo;
 
-import jakarta.persistence.Basic;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import com.tnc.library.enums.PaymentMethodEnum;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -36,8 +22,6 @@ import java.util.Set;
 @Entity
 @Table(name = "payment")
 public class Payment implements Serializable {
-
-    private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
@@ -59,9 +43,9 @@ public class Payment implements Serializable {
     private float amount;
     @Basic(optional = false)
     @NotNull
-    @Size(min = 1, max = 10)
+    @Enumerated(EnumType.STRING)
     @Column(name = "method")
-    private String method;
+    private PaymentMethodEnum method;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "paymentId")
     private Set<MembershipRenewal> membershipRenewalSet;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "payment")
@@ -73,45 +57,4 @@ public class Payment implements Serializable {
     private Reader readerId;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "payment")
     private DirectPayment directPayment;
-
-    public Payment() {
-    }
-
-    public Payment(Integer id) {
-        this.id = id;
-    }
-
-    public Payment(Integer id, String title, Date paymentDate, float amount, String method) {
-        this.id = id;
-        this.title = title;
-        this.paymentDate = paymentDate;
-        this.amount = amount;
-        this.method = method;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Payment)) {
-            return false;
-        }
-        Payment other = (Payment) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        return "com.tnc.library.pojo.Payment[ id=" + id + " ]";
-    }
-    
 }

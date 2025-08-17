@@ -32,48 +32,50 @@ public class CategoryBookServiceImpl implements CategoryBookService {
 
     @Override
     @Transactional
-    public CategoryBook addOrUpdateCategoryBook(Book book, List<Integer> categories) {
-        if (book == null || categories == null || categories.isEmpty()) {
-            // Delete existing associations if categories is empty
-            categoryBookRepository.deleteByBookId(book);
-            return null;
-        }
-
-        List<CategoryBook> existingCategoryBooks = categoryBookRepository.findByBookId(book);
-
-        Set<Integer> existingCategoryIds = existingCategoryBooks.stream()
-                .map(cb -> cb.getCategoryId().getId())
-                .collect(Collectors.toSet());
-
-        // Create a set of new category IDs
-        Set<Integer> newCategoryIds = new HashSet<>(categories);
-
-        // Delete CategoryBook entries that are no longer in the new categories list
-        for (CategoryBook cb : existingCategoryBooks) {
-            if (!newCategoryIds.contains(cb.getCategoryId().getId())) {
-                categoryBookRepository.delete(cb);
+    public boolean addOrUpdateCategoryBook(Book book, List<Integer> categories) {
+        try {
+            if (book == null) {
+                return false;
             }
-        }
 
-        // Add new CategoryBook entries for categories not already associated
-        CategoryBook lastAdded = null;
-        for (Integer categoryId : newCategoryIds) {
-            if (!existingCategoryIds.contains(categoryId)) {
-                // Fetch the Category entity
-                Optional<Category> categoryOpt = categoryRepository.findById(categoryId);
-                if (categoryOpt.isEmpty()) {
-                    continue;
+            if (categories == null || categories.isEmpty()) {
+                // Xóa hết liên kết nếu danh sách rỗng
+                categoryBookRepository.deleteByBookId(book);
+                return true;
+            }
+
+            List<CategoryBook> existingCategoryBooks = categoryBookRepository.findByBookId(book);
+
+            Set<Integer> existingCategoryIds = existingCategoryBooks.stream()
+                    .map(cb -> cb.getCategoryId().getId())
+                    .collect(Collectors.toSet());
+
+            Set<Integer> newCategoryIds = new HashSet<>(categories);
+
+            // Xóa các category cũ không còn trong danh sách mới
+            for (CategoryBook cb : existingCategoryBooks) {
+                if (!newCategoryIds.contains(cb.getCategoryId().getId())) {
+                    categoryBookRepository.delete(cb);
                 }
-                Category category = categoryOpt.get();
-
-                // Create and save new CategoryBook entity
-                CategoryBook categoryBook = new CategoryBook();
-                categoryBook.setBookId(book);
-                categoryBook.setCategoryId(category);
-                lastAdded = categoryBookRepository.save(categoryBook);
             }
-        }
 
-        return lastAdded != null ? lastAdded : existingCategoryBooks.stream().findFirst().orElse(null);
+            // Thêm các category mới chưa có
+            for (Integer categoryId : newCategoryIds) {
+                if (!existingCategoryIds.contains(categoryId)) {
+                    categoryRepository.findById(categoryId).ifPresent(category -> {
+                        CategoryBook categoryBook = new CategoryBook();
+                        categoryBook.setBookId(book);
+                        categoryBook.setCategoryId(category);
+                        categoryBookRepository.save(categoryBook);
+                    });
+                }
+            }
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
+
 }

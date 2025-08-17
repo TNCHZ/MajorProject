@@ -1,6 +1,7 @@
 package com.tnc.library.controllers;
 
 import com.tnc.library.dto.BookDTO;
+import com.tnc.library.enums.PrintedBookStatus;
 import com.tnc.library.pojo.Book;
 import com.tnc.library.pojo.EBook;
 import com.tnc.library.pojo.PrintedBook;
@@ -23,7 +24,7 @@ import java.util.Map;
 @RequestMapping("/api")
 public class ApiBookController {
     @Autowired
-    private BookService bookSer;
+    private BookService bookService;
 
     @Autowired
     private UserService userSer;
@@ -38,71 +39,95 @@ public class ApiBookController {
     private CategoryBookService categoryBookService;
 
 
-    @PostMapping("/add/book")
+    @PostMapping("/book/add")
     public ResponseEntity<?> addBook(
             @RequestPart("book") BookDTO dto,
             @RequestPart(value = "file", required = false) MultipartFile file,
-            @RequestPart(value = "categories") List<Integer> categories ,
+            @RequestPart(value = "categories", required = false) List<Integer> categories,
             @RequestPart(value = "ebookFile", required = false) MultipartFile ebookFile,
             Principal principal) {
         try {
             String username = principal.getName();
             User currentUser = userSer.getUserByUsername(username);
 
-            if (currentUser != null) {
-                if (this.bookSer.getBookByNameAuthorPublishedDate(dto.getTitle(), dto.getAuthor(), Integer.parseInt(dto.getPublishedDate())) == null) {
-                    Book b = new Book();
-                    b.setTitle(dto.getTitle());
-                    b.setAuthor(dto.getAuthor());
-                    b.setPublisher(dto.getPublisher());
-                    b.setDescription(dto.getDescription());
-                    b.setLanguage(dto.getLanguage());
-                    b.setPublishedDate(Integer.parseInt(dto.getPublishedDate()));
-                    b.setIsbn10(dto.getIsbn10());
-                    b.setIsbn13(dto.getIsbn13());
-                    b.setPrice(new BigDecimal(dto.getPrice()));
-                    b.setPrinted(Boolean.parseBoolean(dto.getIsPrinted()));
-                    b.setElectronic(Boolean.parseBoolean(dto.getIsElectronic()));
-                    b.setLibrarianId(currentUser.getLibrarian());
-
-                    if (file != null && !file.isEmpty()) {
-                        b.setFile(file);
-                    }
-
-                    Book bookSaved = this.bookSer.addOrUpdateBook(b);
-                    this.categoryBookService.addOrUpdateCategoryBook(bookSaved, categories);
-
-                    if (bookSaved.isElectronic()){
-                        EBook eBook = new EBook();
-                        eBook.setBook(bookSaved);
-                        eBook.setFormat(dto.getFormat());
-                        eBook.setLicence(dto.getLicence());
-                        eBook.setFile(ebookFile);
-                        eBook.setTotalView(0);
-                        this.eBookService.addOrUpdateEBook(eBook);
-                    }
-                    if(bookSaved.isPrinted())
-                    {
-                        PrintedBook printedBook = new PrintedBook();
-                        printedBook.setBook(bookSaved);
-                        printedBook.setShelfLocation(dto.getShelfLocation());
-                        printedBook.setTotalCopy(Integer.parseInt(dto.getTotalCopy()));
-                        printedBook.setBorrowCount(0);
-                        printedBook.setStatus("AVAILABLE");
-                        this.printedBookService.addOrUpdatePrintedBook(printedBook);
-                    }
-                    return ResponseEntity.ok("Thêm thành công");
-                }
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                            .body("Sách đã tồn tại");
+            if (currentUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Không tìm thấy thông tin người dùng");
             }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Không tìm thấy thông tin người dùng");
+
+            // Kiểm tra trùng lặp
+            if (this.bookService.getBookByNameAuthorPublishedDate(
+                    dto.getTitle(),
+                    dto.getAuthor(),
+                    Integer.parseInt(dto.getPublishedDate())) != null) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("Sách đã tồn tại");
+            }
+
+            // Tạo Book
+            Book b = new Book();
+            b.setTitle(dto.getTitle());
+            b.setAuthor(dto.getAuthor());
+            b.setPublisher(dto.getPublisher());
+            b.setDescription(dto.getDescription());
+            b.setLanguage(dto.getLanguage());
+            b.setPublishedDate(Integer.parseInt(dto.getPublishedDate()));
+            b.setIsbn10(dto.getIsbn10());
+            b.setIsbn13(dto.getIsbn13());
+            b.setPrice(new BigDecimal(dto.getPrice()));
+            b.setPrinted(Boolean.parseBoolean(dto.getIsPrinted()));
+            b.setElectronic(Boolean.parseBoolean(dto.getIsElectronic()));
+            b.setLibrarianId(currentUser.getLibrarian());
+
+            if (file != null && !file.isEmpty()) {
+                b.setFile(file);
+            }
+
+            // Lưu Book
+            Book bookSaved = this.bookService.addOrUpdateBook(b);
+
+            // Lưu categories (nếu có)
+            boolean categoriesSaved = this.categoryBookService.addOrUpdateCategoryBook(bookSaved, categories);
+            if (!categoriesSaved) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Lỗi khi lưu danh mục cho sách");
+            }
+
+            // Nếu là sách điện tử
+            if (bookSaved.isElectronic()) {
+                EBook eBook = new EBook();
+                eBook.setBook(bookSaved);
+                eBook.setFormat(dto.getFormat());
+                eBook.setLicence(dto.getLicence());
+                eBook.setFile(ebookFile);
+                eBook.setTotalView(0);
+                this.eBookService.addOrUpdateEBook(eBook);
+            }
+
+            // Nếu là sách in
+            if (bookSaved.isPrinted()) {
+                PrintedBook printedBook = new PrintedBook();
+                printedBook.setBook(bookSaved);
+                printedBook.setShelfLocation(dto.getShelfLocation());
+                printedBook.setTotalCopy(Integer.parseInt(dto.getTotalCopy()));
+                printedBook.setBorrowCount(0);
+                printedBook.setStatus(PrintedBookStatus.AVAILABLE);
+                this.printedBookService.addOrUpdatePrintedBook(printedBook);
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Thêm thành công");
+
+            return ResponseEntity.ok(response);
 
         } catch (Exception ex) {
             ex.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Lỗi khi thêm sách: " + ex.getMessage());
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Lỗi khi thêm sách: " + ex.getMessage());
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
@@ -113,7 +138,7 @@ public class ApiBookController {
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "id") String sortBy
     ) {
-        return this.bookSer.getBooks(page, size, sortBy)
+        return this.bookService.getBooks(page, size, sortBy)
                 .map(b -> {
                     Map<String, Object> bookMap = new HashMap<>();
                     bookMap.put("id", b.getId());
@@ -133,5 +158,23 @@ public class ApiBookController {
                     bookMap.put("language", b.getLanguage());
                     return bookMap;
                 });
+    }
+
+    @GetMapping("/book/find-by-isbn")
+    public ResponseEntity<?> searchBook(@RequestParam String isbn) {
+        Book book = bookService.findByIsbn(isbn);
+
+        if (book == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Map<String, Object> bookMap = new HashMap<>();
+        bookMap.put("id", book.getId());
+        bookMap.put("title", book.getTitle());
+        bookMap.put("author", book.getAuthor());
+        bookMap.put("publishedDate", book.getPublishedDate());
+        bookMap.put("image", book.getImage());
+
+        return ResponseEntity.ok(bookMap);
     }
 }

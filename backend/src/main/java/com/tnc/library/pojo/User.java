@@ -88,56 +88,19 @@ public class User implements Serializable {
     @Transient
     @JsonIgnore
     private MultipartFile file;
+    @JsonIgnore
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "user")
     private Reader reader;
+    @JsonIgnore
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "user")
     private Admin admin;
+    @JsonIgnore
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "user")
     private Librarian librarian;
 
-    public User() {
-    }
 
-    public User(Integer id) {
-        this.id = id;
+    public String getFullName()
+    {
+        return this.firstName + " " + this.lastName;
     }
-
-    public User(Integer id, String firstName, String lastName, String phone, String email, boolean gender, String role, boolean active, String username, String password) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phone = phone;
-        this.email = email;
-        this.gender = gender;
-        this.role = role;
-        this.active = active;
-        this.username = username;
-        this.password = password;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof User)) {
-            return false;
-        }
-        User other = (User) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        return "com.tnc.library.pojo.User[ id=" + id + " ]";
-    }
-    
 }

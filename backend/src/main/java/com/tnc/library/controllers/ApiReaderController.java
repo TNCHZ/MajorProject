@@ -5,12 +5,14 @@ import com.tnc.library.pojo.User;
 import com.tnc.library.services.ReaderService;
 import com.tnc.library.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -22,7 +24,7 @@ public class ApiReaderController {
     private ReaderService readerSer;
 
 
-    @PostMapping("/readers/add")
+    @PostMapping("/reader/add")
     public ResponseEntity<?> addUser(@ModelAttribute User u) {
         try {
             if (u.getRole() == null || u.getRole().isBlank()) {
@@ -44,4 +46,46 @@ public class ApiReaderController {
         }
     }
 
+    @GetMapping("/reader/find-by-phone")
+    public ResponseEntity<?> getReaderByPhone(@RequestParam String phone) {
+        try {
+            Reader reader = this.readerSer.findReaderByPhone(phone);
+            if (reader == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Không tìm thấy Reader với số điện thoại: " + phone);
+            }
+
+            Map<String, Object> readerMap = new HashMap<>();
+            readerMap.put("id", reader.getId());
+            readerMap.put("name", reader.getUser().getFullName());
+            readerMap.put("phone", reader.getUser().getPhone());
+            readerMap.put("email", reader.getUser().getEmail());
+
+            return ResponseEntity.ok(readerMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi khi tìm Reader: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/readers")
+    public Page<Map<String, Object>> getReaders(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "id") String sortBy
+    ) {
+        return this.readerSer.getReaders(page, size, sortBy)
+                .map(r -> {
+                    Map<String, Object> readerMap = new HashMap<>();
+                    readerMap.put("id", r.getId());
+                    readerMap.put("name", r.getUser().getFullName());
+                    readerMap.put("avatar", r.getUser().getAvatar());
+                    readerMap.put("email", r.getUser().getEmail());
+                    readerMap.put("phone", r.getUser().getPhone());
+                    readerMap.put("gender", r.getUser().isGender());
+                    readerMap.put("isMember", r.isMember());
+                    return readerMap;
+                });
+    }
 }

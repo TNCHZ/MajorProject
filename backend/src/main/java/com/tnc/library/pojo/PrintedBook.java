@@ -4,6 +4,7 @@
  */
 package com.tnc.library.pojo;
 
+import com.tnc.library.enums.PrintedBookStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -20,8 +21,6 @@ import java.util.Set;
 @Entity
 @Table(name = "printed_book")
 public class PrintedBook implements Serializable {
-
-    private static final long serialVersionUID = 1L;
     @Id
     @Basic(optional = false)
     @NotNull
@@ -34,9 +33,9 @@ public class PrintedBook implements Serializable {
     private String shelfLocation;
     @Basic(optional = false)
     @NotNull
-    @Size(min = 1, max = 14)
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status;
+    private PrintedBookStatus status;
     @Basic(optional = false)
     @NotNull
     @Column(name = "total_copy")
@@ -52,44 +51,4 @@ public class PrintedBook implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "printedBookId")
     private Set<PrintedBookBorrowSlip> printedBookBorrowSlipSet;
 
-    public PrintedBook() {
-    }
-
-    public PrintedBook(Integer id) {
-        this.id = id;
-    }
-
-    public PrintedBook(Integer id, String shelfLocation, String status, int totalCopy, int borrowCount) {
-        this.id = id;
-        this.shelfLocation = shelfLocation;
-        this.status = status;
-        this.totalCopy = totalCopy;
-        this.borrowCount = borrowCount;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof PrintedBook)) {
-            return false;
-        }
-        PrintedBook other = (PrintedBook) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        return "com.tnc.library.pojo.PrintedBook[ id=" + id + " ]";
-    }
-    
 }
