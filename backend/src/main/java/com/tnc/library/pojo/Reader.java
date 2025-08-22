@@ -21,7 +21,6 @@ import java.util.Set;
 @Table(name = "reader")
 public class Reader implements Serializable {
 
-    private static final long serialVersionUID = 1L;
     @Id
     @Basic(optional = false)
     @NotNull
@@ -51,41 +50,4 @@ public class Reader implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "readerId")
     private Set<ReaderEvent> readerEventSet;
 
-    public Reader() {
-    }
-
-    public Reader(Integer id) {
-        this.id = id;
-    }
-
-    public Reader(Integer id, boolean isMember) {
-        this.id = id;
-        this.isMember = isMember;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Reader)) {
-            return false;
-        }
-        Reader other = (Reader) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        return "com.tnc.library.pojo.Reader[ id=" + id + " ]";
-    }
-    
 }

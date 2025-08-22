@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
@@ -32,9 +33,21 @@ public class EBookServiceImpl implements EBookService {
     @Override
     public EBook addOrUpdateEBook(EBook b) {
         if (b.getFile() != null && !b.getFile().isEmpty()) {
-            try{
-                Map res = cloudinary.uploader().upload(b.getFile().getBytes(), ObjectUtils.asMap("resource_type", "raw"));
-                b.setFileUrl(res.get("secure_url").toString());
+            try {
+                String uploadDir = System.getProperty("user.dir") + "/uploads/ebooks/";
+                File dir = new File(uploadDir);
+                if (!dir.exists()) {
+                    dir.mkdirs();
+                }
+
+                String originalFilename = b.getFile().getOriginalFilename();
+                String fileName = System.currentTimeMillis() + "_" + originalFilename;
+                String filePath = uploadDir + fileName;
+
+                File file = new File(filePath);
+                b.getFile().transferTo(file);
+
+                b.setFileUrl("/uploads/ebooks/" + fileName);
             } catch (IOException ex) {
                 Logger.getLogger(UserServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
             }

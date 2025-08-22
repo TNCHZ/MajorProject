@@ -4,21 +4,10 @@
  */
 package com.tnc.library.pojo;
 
-import jakarta.persistence.Basic;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -31,8 +20,6 @@ import java.util.Date;
 @Entity
 @Table(name = "membership_renewal")
 public class MembershipRenewal implements Serializable {
-
-    private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
@@ -50,53 +37,16 @@ public class MembershipRenewal implements Serializable {
     private Date expireDate;
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
+    @CreationTimestamp
     private Date createdAt;
-    @JoinColumn(name = "payment_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Payment paymentId;
     @JoinColumn(name = "reader_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Reader readerId;
     @JoinColumn(name = "type_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private TypeMembership typeId;
-
-    public MembershipRenewal() {
-    }
-
-    public MembershipRenewal(Integer id) {
-        this.id = id;
-    }
-
-    public MembershipRenewal(Integer id, Date startDate, Date expireDate) {
-        this.id = id;
-        this.startDate = startDate;
-        this.expireDate = expireDate;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof MembershipRenewal)) {
-            return false;
-        }
-        MembershipRenewal other = (MembershipRenewal) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        return "com.tnc.library.pojo.MembershipRenewal[ id=" + id + " ]";
-    }
-    
+    @JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
+    @OneToOne(optional = false)
+    @MapsId
+    private Payment payment;
 }

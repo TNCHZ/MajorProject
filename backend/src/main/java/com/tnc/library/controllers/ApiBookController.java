@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,6 @@ public class ApiBookController {
 
     @Autowired
     private CategoryBookService categoryBookService;
-
 
     @PostMapping("/book/add")
     public ResponseEntity<?> addBook(
@@ -161,7 +161,7 @@ public class ApiBookController {
     }
 
     @GetMapping("/book/find-by-isbn")
-    public ResponseEntity<?> searchBook(@RequestParam String isbn) {
+    public ResponseEntity<?> searchBookByISBN(@RequestParam String isbn) {
         Book book = bookService.findByIsbn(isbn);
 
         if (book == null) {
@@ -176,5 +176,37 @@ public class ApiBookController {
         bookMap.put("image", book.getImage());
 
         return ResponseEntity.ok(bookMap);
+    }
+
+    @GetMapping("/book/find-by-title")
+    public ResponseEntity<?> searchBookByTitle(@RequestParam String title) {
+        List<Book> books = this.bookService.getBookByTitle(title);
+
+        if (books.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Chỉ lấy các trường cần thiết
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Book b : books) {
+            Map<String, Object> bookMap = new HashMap<>();
+            bookMap.put("id", b.getId());
+            bookMap.put("title", b.getTitle());
+            bookMap.put("description", b.getDescription());
+            bookMap.put("publisher", b.getPublisher());
+            bookMap.put("publishedDate", b.getPublishedDate());
+            bookMap.put("price", b.getPrice());
+            bookMap.put("author", b.getAuthor());
+            bookMap.put("image", b.getImage());
+            bookMap.put("isbn10", b.getIsbn10());
+            bookMap.put("isbn13", b.getIsbn13());
+            bookMap.put("isPrinted", b.isPrinted());
+            bookMap.put("isElectronic", b.isElectronic());
+            bookMap.put("createdDate", b.getCreatedDate());
+            bookMap.put("updatedDate", b.getUpdatedDate());
+            bookMap.put("language", b.getLanguage());
+            result.add(bookMap);
+        }
+        return ResponseEntity.ok(result);
     }
 }

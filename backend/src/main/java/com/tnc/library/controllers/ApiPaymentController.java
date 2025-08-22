@@ -1,6 +1,7 @@
 package com.tnc.library.controllers;
 
 import com.tnc.library.configs.VNPayConfig;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,11 +25,15 @@ public class ApiPaymentController {
 
     @GetMapping("/payment/create")
     public ResponseEntity<?> createPayment(@RequestParam("amount") long amount) throws UnsupportedEncodingException {
+        if (amount <= 0) {
+            return ResponseEntity.badRequest().body("Số tiền phải lớn hơn 0");
+        }
+
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
         String vnp_TxnRef = String.valueOf(System.currentTimeMillis());
         String vnp_IpAddr = "127.0.0.1";
-        String orderType = "other";
+        String orderType = "170000"; // Thương mại điện tử
 
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", vnp_Version);
@@ -37,38 +42,32 @@ public class ApiPaymentController {
         vnp_Params.put("vnp_Amount", String.valueOf(amount * 100));
         vnp_Params.put("vnp_CurrCode", "VND");
         vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
-        vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang:" + vnp_TxnRef);
+        vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang: " + vnp_TxnRef);
         vnp_Params.put("vnp_OrderType", orderType);
         vnp_Params.put("vnp_Locale", "vn");
-        vnp_Params.put("vnp_ReturnUrl", vnpConfig.getVnp_Url());
+        vnp_Params.put("vnp_ReturnUrl", vnpConfig.getVnp_ReturnUrl()); // Sử dụng returnUrl
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
         vnp_Params.put("vnp_CreateDate", new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.MINUTE, 15);
+        vnp_Params.put("vnp_ExpireDate", new SimpleDateFormat("yyyyMMddHHmmss").format(cal.getTime()));
 
-        // sort params
+        // Sort params
         List<String> fieldNames = new ArrayList<>(vnp_Params.keySet());
         Collections.sort(fieldNames);
         StringBuilder hashData = new StringBuilder();
         StringBuilder query = new StringBuilder();
-        for (Iterator<String> it = fieldNames.iterator(); it.hasNext();) {
-            String fieldName = it.next();
+        for (String fieldName : fieldNames) {
             String fieldValue = vnp_Params.get(fieldName);
-            if ((fieldValue != null) && (fieldValue.length() > 0)) {
-                // build hash data
-                hashData.append(fieldName);
-                hashData.append('=');
-                hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
-                if (it.hasNext()) {
-                    hashData.append('&');
-                }
-                // build query
-                query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString()));
-                query.append('=');
-                query.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
-                if (it.hasNext()) {
-                    query.append('&');
-                }
+            if (fieldValue != null && !fieldValue.isEmpty()) {
+                hashData.append(fieldName).append('=')
+                        .append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString())).append('&');
+                query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString())).append('=')
+                        .append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString())).append('&');
             }
         }
+        hashData.deleteCharAt(hashData.length() - 1);
+        query.deleteCharAt(query.length() - 1);
 
         String vnp_SecureHash = hmacSHA512(vnpConfig.getVnp_HashSecret(), hashData.toString());
         query.append("&vnp_SecureHash=").append(vnp_SecureHash);
@@ -95,4 +94,35 @@ public class ApiPaymentController {
             return "";
         }
     }
+
+    @GetMapping("/payment/return")
+    public void handleReturn(@RequestParam Map<String, String> params, HttpServletResponse response) throws Exception {
+        String vnp_SecureHash = params.get("vnp_SecureHash");
+        Map<String, String> sortedParams = new TreeMap<>(params);
+        sortedParams.remove("vnp_SecureHash");
+
+        StringBuilder signData = new StringBuilder();
+        for (Map.Entry<String, String> entry : sortedParams.entrySet()) {
+            if (entry.getKey().startsWith("vnp_")) {
+                signData.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8.toString())).append("=")
+                        .append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8.toString())).append("&");
+            }
+        }
+        signData.deleteCharAt(signData.length() - 1);
+
+        String calculatedHash = hmacSHA512(vnpConfig.getVnp_HashSecret(), signData.toString());
+
+        String frontendUrl = "http://localhost:3000/payment-result"; // ví dụ frontend React
+
+        if (calculatedHash.equals(vnp_SecureHash)) {
+            String status = "failure";
+            if ("00".equals(params.get("vnp_ResponseCode"))) {
+                status = "success";
+            }
+            response.sendRedirect(frontendUrl + "?status=" + status + "&amount=" + params.get("vnp_Amount"));
+        } else {
+            response.sendRedirect(frontendUrl + "?status=invalid-signature");
+        }
+    }
+
 }

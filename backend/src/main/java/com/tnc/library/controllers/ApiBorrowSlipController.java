@@ -1,24 +1,23 @@
 package com.tnc.library.controllers;
 
 import com.tnc.library.dto.BorrowSlipDTO;
+import com.tnc.library.dto.PrintedBookDTO;
 import com.tnc.library.enums.BorrowStatus;
-import com.tnc.library.pojo.BorrowSlip;
-import com.tnc.library.pojo.Reader;
-import com.tnc.library.pojo.User;
-import com.tnc.library.services.BorrowSlipService;
-import com.tnc.library.services.PrintedBookBorrowSlipService;
-import com.tnc.library.services.ReaderService;
-import com.tnc.library.services.UserService;
+import com.tnc.library.enums.PrintedBookStatus;
+import com.tnc.library.enums.TypeFineEnum;
+import com.tnc.library.pojo.*;
+import com.tnc.library.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.Duration;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api")
@@ -35,6 +34,15 @@ public class ApiBorrowSlipController {
     @Autowired
     private PrintedBookBorrowSlipService printedBookBorrowSlipService;
 
+    @Autowired
+    private FineService fineService;
+
+    @Autowired
+    private TypeFineService typeFineService;
+
+    @Autowired
+    private PrintedBookService printedBookService;
+
     @PostMapping("/add/borrow-slip")
     public ResponseEntity<?> addBorrowSlip(
             @RequestPart("borrow-slip") BorrowSlipDTO dto,
@@ -49,6 +57,7 @@ public class ApiBorrowSlipController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Người dùng không hợp lệ");
             }
 
+
             BorrowSlip borrowSlip = new BorrowSlip();
             borrowSlip.setBorrowDate(sdf.parse(dto.getBorrowDate()));
             borrowSlip.setDueDate(sdf.parse(dto.getDueDate()));
@@ -61,8 +70,18 @@ public class ApiBorrowSlipController {
 
             if (dto.getReaderId() != null) {
                 Reader reader = readerService.findReaderById(dto.getReaderId());
+                if (reader == null) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Không tìm thấy độc giả");
+                }
+
+                if (!reader.isMember()) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body("Độc giả chưa là thành viên, không thể mượn sách!");
+                }
+
                 borrowSlip.setReaderId(reader);
             }
+
 
             BorrowSlip savedBorrowSlip = borrowSlipService.addOrUpdateBorrowSlip(borrowSlip);
             boolean success = printedBookBorrowSlipService.addOrUpdatePBBS(savedBorrowSlip, bookIds);
@@ -81,6 +100,76 @@ public class ApiBorrowSlipController {
         }
     }
 
+    @PatchMapping("/update/borrow-slip/{id}")
+    public ResponseEntity<?> addBorrowSlip(
+            @PathVariable Integer id,
+            @RequestBody Map<String, Object> updates,
+            Principal principal) {
+        try {
+            String username = principal.getName();
+            User currentUser = userSer.getUserByUsername(username);
+            Date today = new Date();
+            if (currentUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Người dùng không hợp lệ");
+            }
+
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+
+            BorrowSlip borrowSlip = this.borrowSlipService.getBorrowSlipById(id);
+            if(borrowSlip.getStatus().equals(BorrowStatus.RESERVED))
+                return ResponseEntity.ok("Sách đã được trả");
+            BorrowStatus status = BorrowStatus.valueOf(updates.get("status").toString().toUpperCase());
+            borrowSlip.setReturnDate(new Date());
+            borrowSlip.setStatus(status);
+            BorrowSlip borrowSlip1 = this.borrowSlipService.addOrUpdateBorrowSlip(borrowSlip);
+
+            if(status.equals(BorrowStatus.RESERVED))
+                return ResponseEntity.ok("Trả sách thành công");
+
+
+            if (borrowSlip1.getFine() == null) {
+                Fine fine = new Fine();
+                TypeFine typeFine = new TypeFine();
+                String code = "";
+
+                Duration duration = Duration.between(borrowSlip1.getDueDate().toInstant(), borrowSlip1.getReturnDate().toInstant());
+                if (duration.isNegative() || duration.isZero()) {
+                    code = updates.get("status").toString().toUpperCase();
+                    typeFine = this.typeFineService.findByCode(code);
+                } else {
+                    code = "OVERDUE_AND_" + updates.get("status").toString().toUpperCase();
+                    typeFine = this.typeFineService.findByCode(code);
+                }
+
+                fine.setReason(typeFine.getName());
+                fine.setPaid(false);
+                fine.setIssuedAt(today);
+                fine.setTypeId(typeFine);
+                TypeFineEnum typeFineEnum = TypeFineEnum.valueOf(code);
+                fine.setAmount(typeFineEnum.calculateFineAmount( BigDecimal.valueOf(Double.parseDouble(updates.get("book_price").toString())) , (int) duration.toDays()));
+                fine.setReaderId(borrowSlip1.getReaderId());
+                fine.setLibrarianId(currentUser.getLibrarian());
+                fine.setBorrowSlip(borrowSlip1);
+                this.fineService.addOrUpdateFine(fine);
+
+                List<Integer> bookIds = (List<Integer>) updates.get("bookIds");
+
+                if(status.equals(BorrowStatus.LOST))
+                    for (Integer bookId : bookIds) {
+                        PrintedBook printedBook = this.printedBookService.getBookByPrintedBookId(bookId);
+                        printedBook.setBorrowCount(printedBook.getBorrowCount() - 1);
+                        printedBook.setTotalCopy(printedBook.getTotalCopy() + 1);
+                        this.printedBookService.addOrUpdatePrintedBook(printedBook);
+                }
+
+            }
+            return ResponseEntity.ok("Đã thêm phiếu phạt");
+
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 
     @GetMapping("/borrow-slips")
@@ -96,12 +185,39 @@ public class ApiBorrowSlipController {
                     brMap.put("borrowDate", b.getBorrowDate());
                     brMap.put("note", b.getNote());
                     brMap.put("status", b.getStatus());
-                    brMap.put("dueDate",b.getDueDate());
-                    brMap.put("readerName",b.getReaderId().getUser().getFullName());
-                    brMap.put("returnDate",b.getReturnDate());
-
+                    brMap.put("dueDate", b.getDueDate());
+                    brMap.put("readerId", b.getReaderId().getId());
+                    brMap.put("readerName", b.getReaderId().getUser().getFullName());
+                    brMap.put("returnDate", b.getReturnDate());
+                    if (b.getFine() != null) {
+                        if (b.getStatus().equals(BorrowStatus.LOST) || b.getStatus().equals(BorrowStatus.OVERDUE))
+                            brMap.put("fine", b.getFine().isPaid());
+                    }
                     return brMap;
                 });
     }
-    
+
+
+    @GetMapping("/borrow-slip/{id}")
+    public ResponseEntity<?> getBooksByBorrowSlip(@PathVariable Integer id) {
+        BorrowSlip borrowSlip = this.borrowSlipService.getBorrowSlipById(id);
+        List<PrintedBookBorrowSlip> books = this.printedBookBorrowSlipService.getByBorrowSlip(borrowSlip);
+
+        if (books.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy sách nào cho borrowSlip " + id);
+        }
+        // Lấy list PrintedBook từ PrintedBookBorrowSlip
+        List<PrintedBookDTO> printedBooks = books.stream()
+                .map(b -> new PrintedBookDTO(
+                        b.getPrintedBookId().getId(),
+                        b.getPrintedBookId().getBook().getTitle(),
+                        b.getPrintedBookId().getBook().getAuthor(),
+                        b.getPrintedBookId().getBook().getPublishedDate(),
+                        b.getPrintedBookId().getBook().getPrice()
+                ))
+                .toList();
+
+        return ResponseEntity.ok(printedBooks);
+    }
+
 }

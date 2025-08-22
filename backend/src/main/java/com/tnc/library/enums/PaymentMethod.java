@@ -1,6 +1,6 @@
 package com.tnc.library.enums;
 
-public enum PaymentMethodEnum {
+public enum PaymentMethod {
     IN_PERSON,
     ONLINE
 }

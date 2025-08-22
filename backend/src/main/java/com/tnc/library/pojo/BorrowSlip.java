@@ -58,4 +58,6 @@ public class BorrowSlip implements Serializable {
     private Librarian librarianId;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "borrowSlipId")
     private Set<PrintedBookBorrowSlip> printedBookBorrowSlipSet;
+    @OneToOne(mappedBy = "borrowSlip", cascade = CascadeType.ALL)
+    private Fine fine;
 }

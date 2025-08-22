@@ -8,14 +8,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 
+import java.util.List;
 import java.util.Optional;
 
 
 @Repository
 public interface BookRepository extends JpaRepository<Book, Integer> {
-    Optional<Book> findBookByTitle(String title);
     Optional<Book> findByIsbn10(String isbn10);
     Optional<Book> findByIsbn13(String isbn13);
+
+    List<Book> findByTitle(String title);
+
+
     Page<Book> findAll(Pageable pageable);
     Optional<Book> findBookByTitleAndAuthorAndPublishedDate(String title, String author, int publishedDate);
 }

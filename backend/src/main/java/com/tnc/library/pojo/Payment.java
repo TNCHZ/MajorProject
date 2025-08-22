@@ -4,13 +4,14 @@
  */
 package com.tnc.library.pojo;
 
-import com.tnc.library.enums.PaymentMethodEnum;
+import com.tnc.library.enums.PaymentMethod;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Set;
 
@@ -40,21 +41,24 @@ public class Payment implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Column(name = "amount")
-    private float amount;
+    private BigDecimal amount;
+    @Basic(optional = false)
+    @NotNull
+    @Column(name = "is_paid")
+    private boolean isPaid;
     @Basic(optional = false)
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "method")
-    private PaymentMethodEnum method;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "paymentId")
-    private Set<MembershipRenewal> membershipRenewalSet;
+    private PaymentMethod method;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "payment")
-    private OnlinePayment onlinePayment;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "paymentId")
-    private Set<Fine> fineSet;
+    private MembershipRenewal membershipRenewal;
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "payment")
+    private Fine fine;
     @JoinColumn(name = "reader_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Reader readerId;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "payment")
-    private DirectPayment directPayment;
+    @JoinColumn(name = "librarian_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private Librarian librarianId;
 }

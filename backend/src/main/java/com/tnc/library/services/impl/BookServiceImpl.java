@@ -15,6 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -45,11 +46,6 @@ public class BookServiceImpl implements BookService {
         return this.bookRepository.save(b);
     }
 
-    @Override
-    public Book getBookByTitle(String title) {
-        Optional<Book> book = this.bookRepository.findBookByTitle(title);
-        return book.orElse(null);
-    }
 
     @Override
     public Book findByIsbn(String isbn) {
@@ -78,6 +74,11 @@ public class BookServiceImpl implements BookService {
     public Book getBookByBookId(int id) {
         Optional<Book> book = this.bookRepository.findById(id);
         return book.orElse(null);
+    }
+
+    @Override
+    public List<Book> getBookByTitle(String title) {
+        return this.bookRepository.findByTitle(title);
     }
 
     @Override

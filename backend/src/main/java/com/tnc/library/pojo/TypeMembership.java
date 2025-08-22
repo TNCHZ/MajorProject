@@ -4,6 +4,7 @@
  */
 package com.tnc.library.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -31,8 +32,6 @@ import java.util.Set;
 @Entity
 @Table(name = "type_membership")
 public class TypeMembership implements Serializable {
-
-    private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
@@ -48,45 +47,15 @@ public class TypeMembership implements Serializable {
     @NotNull
     @Column(name = "price")
     private BigDecimal price;
+    @Basic(optional = false)
+    @NotNull
+    @Column(name = "duration")
+    private Integer duration;
+    @Size(max = 255)
+    @Column(name = "description")
+    private String description;
+    @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "typeId")
     private Set<MembershipRenewal> membershipRenewalSet;
 
-    public TypeMembership() {
-    }
-
-    public TypeMembership(Integer id) {
-        this.id = id;
-    }
-
-    public TypeMembership(Integer id, String title, BigDecimal price) {
-        this.id = id;
-        this.title = title;
-        this.price = price;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof TypeMembership)) {
-            return false;
-        }
-        TypeMembership other = (TypeMembership) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        return "com.tnc.library.pojo.TypeMembership[ id=" + id + " ]";
-    }
-    
 }

@@ -6,6 +6,7 @@ import com.tnc.library.pojo.PrintedBook;
 import com.tnc.library.pojo.PrintedBookBorrowSlip;
 import com.tnc.library.respositories.BookRepository;
 import com.tnc.library.respositories.PrintedBookBorrowSlipRepository;
+import com.tnc.library.respositories.PrintedBookRepository;
 import com.tnc.library.services.BookService;
 import com.tnc.library.services.PrintedBookBorrowSlipService;
 import jakarta.transaction.Transactional;
@@ -26,6 +27,10 @@ public class PrintedBookBorrowSlipServiceImpl implements PrintedBookBorrowSlipSe
     @Autowired
     private BookRepository bookRepository;
 
+    @Autowired
+    private PrintedBookRepository printedBookRepository;
+
+
     @Transactional
     @Override
     public boolean addOrUpdatePBBS(BorrowSlip borrowSlip, List<Integer> bookIds) {
@@ -38,7 +43,13 @@ public class PrintedBookBorrowSlipServiceImpl implements PrintedBookBorrowSlipSe
 
                 Book book = this.bookRepository.findById(bookId)
                         .orElseThrow(() -> new RuntimeException("Book not found with id: " + bookId));
-                pbbs.setPrintedBookId(book.getPrintedBook());                pbbs.setPrintedBookId(book.getPrintedBook());
+
+                PrintedBook printedBook = book.getPrintedBook();
+                pbbs.setPrintedBookId(printedBook);
+
+                int currentBorrowCount = printedBook.getBorrowCount();
+                printedBook.setBorrowCount(currentBorrowCount + 1);
+                this.printedBookRepository.save(printedBook);
 
                 pbbsList.add(pbbs);
             }
@@ -50,6 +61,11 @@ public class PrintedBookBorrowSlipServiceImpl implements PrintedBookBorrowSlipSe
             e.printStackTrace();
             return false; // có lỗi
         }
+    }
+
+    @Override
+    public List<PrintedBookBorrowSlip> getByBorrowSlip(BorrowSlip borrowSlip) {
+        return this.printedBookBorrowSlipRepository.findByBorrowSlipId(borrowSlip);
     }
 
 }

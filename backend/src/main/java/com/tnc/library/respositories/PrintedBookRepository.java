@@ -9,5 +9,4 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PrintedBookRepository extends JpaRepository<PrintedBook, Integer> {
     Page<PrintedBook> findAll(Pageable pageable);
-
 }

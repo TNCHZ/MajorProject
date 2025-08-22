@@ -23,8 +23,7 @@ public class ApiReaderController {
     @Autowired
     private ReaderService readerSer;
 
-
-    @PostMapping("/reader/add")
+    @PostMapping("/add/reader")
     public ResponseEntity<?> addUser(@ModelAttribute User u) {
         try {
             if (u.getRole() == null || u.getRole().isBlank()) {

@@ -50,5 +50,4 @@ public class PrintedBook implements Serializable {
     private Book book;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "printedBookId")
     private Set<PrintedBookBorrowSlip> printedBookBorrowSlipSet;
-
 }
