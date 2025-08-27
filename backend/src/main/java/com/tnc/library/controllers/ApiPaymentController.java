@@ -1,13 +1,17 @@
 package com.tnc.library.controllers;
 
 import com.tnc.library.configs.VNPayConfig;
+import com.tnc.library.services.PaymentService;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -17,6 +21,10 @@ import java.util.*;
 @RequestMapping("/api")
 public class ApiPaymentController {
 
+    @Autowired
+    private PaymentService paymentService;
+
+
     private final VNPayConfig vnpConfig;
 
     public ApiPaymentController(VNPayConfig vnpConfig) {
@@ -24,7 +32,8 @@ public class ApiPaymentController {
     }
 
     @GetMapping("/payment/create")
-    public ResponseEntity<?> createPayment(@RequestParam("amount") long amount) throws UnsupportedEncodingException {
+    public ResponseEntity<?> createPayment(@RequestParam("amount") long amount,
+                                           @RequestParam("type") String type) throws UnsupportedEncodingException {
         if (amount <= 0) {
             return ResponseEntity.badRequest().body("Số tiền phải lớn hơn 0");
         }
@@ -45,12 +54,14 @@ public class ApiPaymentController {
         vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang: " + vnp_TxnRef);
         vnp_Params.put("vnp_OrderType", orderType);
         vnp_Params.put("vnp_Locale", "vn");
-        vnp_Params.put("vnp_ReturnUrl", vnpConfig.getVnp_ReturnUrl()); // Sử dụng returnUrl
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
         vnp_Params.put("vnp_CreateDate", new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.MINUTE, 15);
         vnp_Params.put("vnp_ExpireDate", new SimpleDateFormat("yyyyMMddHHmmss").format(cal.getTime()));
+
+        String returnUrl = vnpConfig.getVnp_ReturnUrl() + "?type=" + type;
+        vnp_Params.put("vnp_ReturnUrl", returnUrl);
 
         // Sort params
         List<String> fieldNames = new ArrayList<>(vnp_Params.keySet());
@@ -98,6 +109,8 @@ public class ApiPaymentController {
     @GetMapping("/payment/return")
     public void handleReturn(@RequestParam Map<String, String> params, HttpServletResponse response) throws Exception {
         String vnp_SecureHash = params.get("vnp_SecureHash");
+        String type = params.get("type");
+
         Map<String, String> sortedParams = new TreeMap<>(params);
         sortedParams.remove("vnp_SecureHash");
 
@@ -112,17 +125,45 @@ public class ApiPaymentController {
 
         String calculatedHash = hmacSHA512(vnpConfig.getVnp_HashSecret(), signData.toString());
 
-        String frontendUrl = "http://localhost:3000/payment-result"; // ví dụ frontend React
+        String frontendUrl = "http://localhost:3000/payment/result"; // ví dụ frontend React
 
         if (calculatedHash.equals(vnp_SecureHash)) {
             String status = "failure";
             if ("00".equals(params.get("vnp_ResponseCode"))) {
                 status = "success";
             }
-            response.sendRedirect(frontendUrl + "?status=" + status + "&amount=" + params.get("vnp_Amount"));
+            response.sendRedirect(frontendUrl + "?status=" + status + "&amount=" + params.get("vnp_Amount") + "&type=" + type);
         } else {
             response.sendRedirect(frontendUrl + "?status=invalid-signature");
         }
     }
 
+    @GetMapping("/payment/revenue")
+    public ResponseEntity<Map<String, BigDecimal>> getRevenue(
+            @RequestParam int year,
+            @RequestParam(required = false) Integer month) {
+        return ResponseEntity.ok(paymentService.getRevenueByType(year, month));
+    }
+
+    @GetMapping("/payments")
+    public Page<Map<String, Object>> getReaders(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "id") String sortBy
+    ) {
+        return this.paymentService.getPayments(page, size, sortBy)
+                .map(p -> {
+                    Map<String, Object> paymentMap = new HashMap<>();
+                    paymentMap.put("id", p.getId());
+                    paymentMap.put("user", p.getReaderId().getUser().getFullName());
+                    if (p.getFine() != null) {
+                        paymentMap.put("type", "fine");
+                    } else {
+                        paymentMap.put("type", "Membership");
+                    }
+                    paymentMap.put("description", p.getTitle());
+                    paymentMap.put("amount", p.getAmount());
+                    return paymentMap;
+                });
+    }
 }

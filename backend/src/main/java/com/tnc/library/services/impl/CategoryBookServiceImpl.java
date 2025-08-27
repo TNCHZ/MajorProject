@@ -1,5 +1,6 @@
 package com.tnc.library.services.impl;
 
+import com.tnc.library.dto.CategoryBookDTO;
 import com.tnc.library.pojo.Book;
 import com.tnc.library.pojo.Category;
 import com.tnc.library.pojo.CategoryBook;
@@ -11,10 +12,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,5 +75,21 @@ public class CategoryBookServiceImpl implements CategoryBookService {
             return false;
         }
     }
+
+    @Override
+    public List<Book> getBooksByCategory(Integer categoryId) {
+        return categoryBookRepository.findBooksByCategoryId(categoryId);
+    }
+
+    @Override
+    public List<CategoryBookDTO> countBooksForAllCategories() {
+        List<Object[]> results = categoryBookRepository.countBooksGroupByCategory();
+        List<CategoryBookDTO> categoryBookDTOS = new ArrayList<>();
+        for (Object[] row : results) {
+            categoryBookDTOS.add(new CategoryBookDTO((String) row[0], (Long) row[1]));
+        }
+        return categoryBookDTOS;
+    }
+
 
 }

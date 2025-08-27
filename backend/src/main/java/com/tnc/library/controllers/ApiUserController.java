@@ -10,12 +10,16 @@ import com.tnc.library.services.ReaderService;
 import com.tnc.library.services.UserService;
 import com.tnc.library.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -23,6 +27,14 @@ public class ApiUserController {
     @Autowired
     private UserService userSer;
 
+    @Autowired
+    private ReaderService readerService;
+
+    @Autowired
+    private LibrarianService librarianService;
+
+    @Autowired
+    private AdminService adminService;
 
     @PostMapping("/auth/login")
     public ResponseEntity<?> login(@RequestBody User u) {
@@ -48,4 +60,64 @@ public class ApiUserController {
         return new ResponseEntity<>(this.userSer.getUserByUsername(principal.getName()), HttpStatus.OK);
     }
 
+
+    @GetMapping("/users")
+    public Page<Map<String, Object>> getReaders(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "id") String sortBy
+    ) {
+        return this.userSer.getUsers(page, size, sortBy)
+                .map(r -> {
+                    Map<String, Object> readerMap = new HashMap<>();
+                    readerMap.put("id", r.getId());
+                    readerMap.put("name", r.getFullName());
+                    readerMap.put("avatar", r.getAvatar());
+                    readerMap.put("email", r.getEmail());
+                    readerMap.put("phone", r.getPhone());
+                    readerMap.put("gender", r.isGender());
+                    readerMap.put("active", r.isActive());
+                    readerMap.put("role", r.getRole());
+                    return readerMap;
+                });
+    }
+
+    @PostMapping("/add/user")
+    public ResponseEntity<?> addUser(@ModelAttribute User u) {
+        try {
+            if (u.getRole() == null || u.getRole().isBlank()) {
+                return ResponseEntity.badRequest().body("Vai trò không được để trống!");
+            }
+
+            // Lưu User
+            User userSaved = this.userSer.addOrUpdateUser(u);
+            switch (u.getRole()){
+                case "READER":
+                    Reader r = new Reader();
+                    r.setMember(Boolean.FALSE);
+                    r.setUser(userSaved);
+                    this.readerService.addOrUpdateReader(r);
+                    break;
+                case "LIBRARIAN":
+                    Librarian librarian = new Librarian();
+                    librarian.setUser(userSaved);
+                    librarian.setStartDate(new Date());
+                    this.librarianService.addOrUpdateLibrarian(librarian);
+                    break;
+                case "ADMIN":
+                    Admin admin = new Admin();
+                    admin.setUser(userSaved);
+                    this.adminService.addOrUpdateAdmin(admin);
+                    break;
+                default:
+                    return ResponseEntity.badRequest().body("Vai trò không hợp lệ: " + u.getRole());
+            }
+
+            return ResponseEntity.ok(userSaved);
+        } catch (Exception e) {
+            e.printStackTrace(); // Log ra console
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi khi thêm người dùng: " + e.getMessage());
+        }
+    }
 }

@@ -16,6 +16,7 @@ public interface BookService {
 
     List<Book> getBookByTitle(String title);
 
+    Integer countAllBook();
     void deleteBook(Book b);
 
     public Page<Book> getBooks(int page, int size, String sortBy);

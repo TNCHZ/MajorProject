@@ -1,5 +1,6 @@
 package com.tnc.library.services.impl;
 
+import com.tnc.library.dto.BookBorrowCountDTO;
 import com.tnc.library.pojo.Book;
 import com.tnc.library.pojo.BorrowSlip;
 import com.tnc.library.pojo.PrintedBook;
@@ -66,6 +67,17 @@ public class PrintedBookBorrowSlipServiceImpl implements PrintedBookBorrowSlipSe
     @Override
     public List<PrintedBookBorrowSlip> getByBorrowSlip(BorrowSlip borrowSlip) {
         return this.printedBookBorrowSlipRepository.findByBorrowSlipId(borrowSlip);
+    }
+
+    @Override
+    public List<BookBorrowCountDTO> countBorrowedTimesForBooks() {
+        List<Object[]> results = this.printedBookBorrowSlipRepository.countBorrowedTimesForBooks();
+        List<BookBorrowCountDTO> bookBorrowCountDTOS = new ArrayList<>();
+        for (Object[] row : results)
+        {
+            bookBorrowCountDTOS.add(new BookBorrowCountDTO((String) row[0], (String) row[1], (Long) row[2]));
+        }
+        return bookBorrowCountDTOS;
     }
 
 }

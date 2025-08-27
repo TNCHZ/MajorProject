@@ -1,6 +1,6 @@
 package com.tnc.library.controllers;
 
-import com.tnc.library.dto.DirectPaymentDTO;
+import com.tnc.library.dto.MembershipDTO;
 import com.tnc.library.enums.PaymentMethod;
 import com.tnc.library.pojo.*;
 import com.tnc.library.services.*;
@@ -36,7 +36,7 @@ public class ApiMembershipRenewal {
     private TypeMembershipService typeMembershipService;
 
     @PostMapping("/membership/add")
-    public ResponseEntity<?> addMembership(@RequestPart("direct-payment") DirectPaymentDTO directPaymentDTO, Principal principal) {
+    public ResponseEntity<?> addMembership(@RequestPart("membership") MembershipDTO membershipDTO, Principal principal) {
         try {
             String username = principal.getName();
             User currentUser = userService.getUserByUsername(username);
@@ -44,18 +44,18 @@ public class ApiMembershipRenewal {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Người dùng không hợp lệ");
             }
 
-            if (directPaymentDTO.getReaderId() == null) {
+            if (membershipDTO.getReaderId() == null) {
                 return ResponseEntity.badRequest().body("ReaderId không được để trống");
             }
 
-            Reader reader = readerService.findReaderById(directPaymentDTO.getReaderId());
+            Reader reader = readerService.findReaderById(membershipDTO.getReaderId());
             if (reader == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy độc giả");
             }
             reader.setMember(true);
             Reader reader1 = this.readerService.addOrUpdateReader(reader);
 
-            TypeMembership typeMembership = typeMembershipService.findById(directPaymentDTO.getTypeId());
+            TypeMembership typeMembership = typeMembershipService.findById(membershipDTO.getTypeId());
             if (typeMembership == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy loại thành viên");
             }
@@ -67,11 +67,11 @@ public class ApiMembershipRenewal {
             Date expireDate = cal.getTime();
 
             Payment payment = new Payment();
-            payment.setTitle(directPaymentDTO.getTitle());
+            payment.setTitle(membershipDTO.getTitle());
             payment.setPaymentDate(startDate);
-            payment.setAmount(new BigDecimal(directPaymentDTO.getAmount()));
+            payment.setAmount(new BigDecimal(membershipDTO.getAmount()));
             payment.setLibrarianId(currentUser.getLibrarian());
-            payment.setMethod("IN_PERSON".equals(directPaymentDTO.getMethod()) ? PaymentMethod.IN_PERSON : PaymentMethod.ONLINE);
+            payment.setMethod("IN_PERSON".equals(membershipDTO.getMethod()) ? PaymentMethod.IN_PERSON : PaymentMethod.ONLINE);
             payment.setReaderId(reader1);
             payment.setPaid(true);
             Payment payment1 = this.paymentService.addOrUpdatePayment(payment);

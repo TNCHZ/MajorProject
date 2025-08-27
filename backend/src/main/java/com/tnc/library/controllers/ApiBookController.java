@@ -1,6 +1,8 @@
 package com.tnc.library.controllers;
 
+import com.tnc.library.dto.BookBorrowCountDTO;
 import com.tnc.library.dto.BookDTO;
+import com.tnc.library.dto.CategoryBookDTO;
 import com.tnc.library.enums.PrintedBookStatus;
 import com.tnc.library.pojo.Book;
 import com.tnc.library.pojo.EBook;
@@ -38,6 +40,9 @@ public class ApiBookController {
 
     @Autowired
     private CategoryBookService categoryBookService;
+
+    @Autowired
+    private PrintedBookBorrowSlipService printedBookBorrowSlipService;
 
     @PostMapping("/book/add")
     public ResponseEntity<?> addBook(
@@ -208,5 +213,30 @@ public class ApiBookController {
             result.add(bookMap);
         }
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/book/count")
+    public ResponseEntity<?> getBookCount() {
+        Integer countAllBook = bookService.countAllBook();
+        return ResponseEntity.ok(countAllBook);
+    }
+
+    @GetMapping("/book/category/{categoryId}")
+    public ResponseEntity<List<Book>> getBooksByCategory(@PathVariable Integer categoryId) {
+        List<Book> books = categoryBookService.getBooksByCategory(categoryId);
+        if (books.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(books);
+    }
+
+    @GetMapping("/book/category/count")
+    public ResponseEntity<List<CategoryBookDTO>> countBooksForAllCategories() {
+        return ResponseEntity.ok(categoryBookService.countBooksForAllCategories());
+    }
+
+    @GetMapping("/book/borrow-slip/count")
+    public ResponseEntity<List<BookBorrowCountDTO>> countBooksForBorrowSlip() {
+        return ResponseEntity.ok(this.printedBookBorrowSlipService.countBorrowedTimesForBooks());
     }
 }

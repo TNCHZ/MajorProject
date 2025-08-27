@@ -3,7 +3,7 @@ package com.tnc.library.dto;
 import lombok.Data;
 
 @Data
-public class DirectPaymentDTO {
+public class MembershipDTO {
     private String title;
     private Integer readerId;
     private String paymentDate;

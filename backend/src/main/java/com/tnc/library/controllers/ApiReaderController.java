@@ -87,4 +87,10 @@ public class ApiReaderController {
                     return readerMap;
                 });
     }
+
+    @GetMapping("/reader/count")
+    public ResponseEntity<?> getReaderCount(){
+        Integer countAllReader = this.readerSer.countAllReader();
+        return ResponseEntity.ok(countAllReader);
+    }
 }

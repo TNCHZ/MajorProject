@@ -45,8 +45,7 @@ public class MembershipRenewal implements Serializable {
     @JoinColumn(name = "type_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private TypeMembership typeId;
-    @JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
-    @OneToOne(optional = false)
-    @MapsId
+    @OneToOne
+    @JoinColumn(name = "payment_id", nullable = true, unique = true)
     private Payment payment;
 }

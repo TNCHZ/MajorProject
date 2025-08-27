@@ -21,7 +21,6 @@ import java.util.Date;
 @Entity
 @Table(name = "fine")
 public class Fine implements Serializable {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
@@ -53,7 +52,7 @@ public class Fine implements Serializable {
     @JoinColumn(name = "borrow_slip_id", nullable = false, unique = true)
     private BorrowSlip borrowSlip;
     @OneToOne
-    @JoinColumn(name = "payment_id", nullable = false, unique = true)
+    @JoinColumn(name = "payment_id", nullable = true, unique = true)
     private Payment payment;
     @JoinColumn(name = "librarian_id", referencedColumnName = "id")
     @ManyToOne(optional = false)

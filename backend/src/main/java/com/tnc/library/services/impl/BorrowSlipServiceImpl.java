@@ -1,5 +1,7 @@
 package com.tnc.library.services.impl;
 
+import com.tnc.library.dto.MonthlyBorrowingDTO;
+import com.tnc.library.enums.BorrowStatus;
 import com.tnc.library.pojo.BorrowSlip;
 import com.tnc.library.pojo.Reader;
 import com.tnc.library.pojo.User;
@@ -13,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,6 +47,27 @@ public class BorrowSlipServiceImpl implements BorrowSlipService {
     @Transactional
     public void deleteBorrowSlip(BorrowSlip b) {
         this.borrowSlipRepository.delete(b);
+    }
+
+    @Override
+    public List<MonthlyBorrowingDTO> getMonthlyBorrowings(int year) {
+        List<Object[]> raw = borrowSlipRepository.countBorrowingsByMonthYear(year);
+        List<MonthlyBorrowingDTO> result = new ArrayList<>();
+
+        String[] months = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
+
+        for (Object[] row : raw) {
+            Integer month = ((Number) row[0]).intValue();
+            Long count = ((Number) row[1]).longValue();
+            result.add(new MonthlyBorrowingDTO(months[month - 1], count));
+        }
+
+        return result;
+    }
+
+    @Override
+    public Integer countByStatus(BorrowStatus borrowStatus) {
+        return (int) this.borrowSlipRepository.countByStatus(borrowStatus);
     }
 
     @Override

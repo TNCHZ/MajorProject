@@ -82,6 +82,11 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    public Integer countAllBook() {
+        return (int) this.bookRepository.count();
+    }
+
+    @Override
     @Transactional
     public void deleteBook(Book b) {
         this.bookRepository.delete(b);

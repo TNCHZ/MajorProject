@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'book_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,7 +12,7 @@ class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
-    const BooksPage(),
+    const BookPage(),   // Dùng BookPage thật từ book_page.dart
     const InfoPage(),
     const SettingsPage(),
   ];
@@ -46,15 +47,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class BooksPage extends StatelessWidget {
-  const BooksPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text("📚 Trang Sách"));
-  }
-}
-
+// ✅ Giữ lại 2 page phụ
 class InfoPage extends StatelessWidget {
   const InfoPage({super.key});
 

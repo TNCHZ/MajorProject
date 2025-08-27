@@ -8,5 +8,7 @@ public interface ReaderService {
     Reader findReaderByPhone(String phone);
     Reader addOrUpdateReader(Reader r);
     Reader findReaderById(Integer id);
+    Integer countAllReader();
+
     public Page<Reader> getReaders(int page, int size, String sortBy);
 }

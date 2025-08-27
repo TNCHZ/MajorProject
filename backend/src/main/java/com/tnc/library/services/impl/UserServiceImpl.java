@@ -7,6 +7,10 @@ import com.tnc.library.respositories.UserRepository;
 import com.tnc.library.services.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -67,11 +71,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> getAllUsers() {
-        return this.userRepository.findAll();
-    }
-
-    @Override
     public boolean authenticate(String username, String password) {
         Optional<User> u = this.userRepository.findByUsername(username);
         if (u.isPresent()) {
@@ -85,6 +84,12 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void deleteUser(User u) {
         this.userRepository.delete(u);
+    }
+
+    @Override
+    public Page<User> getUsers(int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        return this.userRepository.findAll(pageable);
     }
 
     @Override
