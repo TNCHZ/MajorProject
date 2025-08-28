@@ -2,7 +2,6 @@ import axios from "axios";
 import cookie from "react-cookies";
 
 export const BASE_URL = 'http://localhost:8080/api/';
-export const API_KEY = 'AIzaSyBzBVojOP6DCMB6hFwWpL8ppVWEo-O3ao4';
 
 
 export const endpoints = {
