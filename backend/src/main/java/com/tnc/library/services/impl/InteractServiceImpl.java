@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class InteractServiceImpl implements InteractService {
@@ -28,5 +29,17 @@ public class InteractServiceImpl implements InteractService {
     public Page<Interact> getInteractsByBookId(Book book, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return interactRepository.findByBookId(book, pageable);
+    }
+
+    @Override
+    public Interact getInteractById(Integer id) {
+        Optional<Interact> interact = this.interactRepository.findById(id);
+        return interact.orElse(null);
+    }
+
+    @Override
+    @Transactional
+    public void deleteInteract(Interact interact) {
+        this.interactRepository.delete(interact);
     }
 }

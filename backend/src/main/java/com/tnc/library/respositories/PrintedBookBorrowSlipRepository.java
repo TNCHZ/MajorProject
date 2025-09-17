@@ -17,4 +17,6 @@ public interface PrintedBookBorrowSlipRepository extends JpaRepository<PrintedBo
             "FROM PrintedBookBorrowSlip pbbs " +
             "GROUP BY pbbs.printedBookId.book.title, pbbs.printedBookId.book.author")
     List<Object[]> countBorrowedTimesForBooks();
+
+
 }

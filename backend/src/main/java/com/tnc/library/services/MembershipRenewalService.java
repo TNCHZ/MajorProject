@@ -4,4 +4,5 @@ import com.tnc.library.pojo.MembershipRenewal;
 
 public interface MembershipRenewalService{
     MembershipRenewal addOrUpdateMembership(MembershipRenewal m);
+    boolean canReaderReadEbook(Integer id);
 }

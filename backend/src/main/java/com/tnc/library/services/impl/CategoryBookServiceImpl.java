@@ -37,7 +37,6 @@ public class CategoryBookServiceImpl implements CategoryBookService {
             }
 
             if (categories == null || categories.isEmpty()) {
-                // Xóa hết liên kết nếu danh sách rỗng
                 categoryBookRepository.deleteByBookId(book);
                 return true;
             }
@@ -50,14 +49,12 @@ public class CategoryBookServiceImpl implements CategoryBookService {
 
             Set<Integer> newCategoryIds = new HashSet<>(categories);
 
-            // Xóa các category cũ không còn trong danh sách mới
             for (CategoryBook cb : existingCategoryBooks) {
                 if (!newCategoryIds.contains(cb.getCategoryId().getId())) {
                     categoryBookRepository.delete(cb);
                 }
             }
 
-            // Thêm các category mới chưa có
             for (Integer categoryId : newCategoryIds) {
                 if (!existingCategoryIds.contains(categoryId)) {
                     categoryRepository.findById(categoryId).ifPresent(category -> {
@@ -89,6 +86,14 @@ public class CategoryBookServiceImpl implements CategoryBookService {
             categoryBookDTOS.add(new CategoryBookDTO((String) row[0], (Long) row[1]));
         }
         return categoryBookDTOS;
+    }
+
+    @Override
+    public List<Category> getCategoriesByBook(Book book) {
+        return categoryBookRepository.findByBookId(book)
+                .stream()
+                .map(CategoryBook::getCategoryId)
+                .collect(Collectors.toList());
     }
 
 

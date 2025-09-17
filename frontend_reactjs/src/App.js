@@ -9,7 +9,7 @@ import myUserReducer from "./reducer/MyUserReducer";
 import LoginPage from "./pages/LoginPage";
 import SettingsPage from "./pages/SettingPage";
 import DashboardPage from "./pages/DashboardPage";
-import BookPage from "./pages/BookPage/BookPage";
+import BookPage from "./pages/BookPage";
 import LogoutPage from "./pages/LogoutPage";
 import ReaderPage from "./pages/ReaderPage";
 import BorrowSlipPage from "./pages/BorrowSlipPage";
@@ -19,6 +19,7 @@ import FinePage from "./pages/FinePage";
 import UserPage from "./pages/UserPage";
 import ForbiddenPage from "./pages/ForbiddenPage";
 import RevenueManagementPage from "./pages/RevenueManagementPage";
+import ChatPage from "./pages/ChatPage";
 
 const ProtectedRoute = ({ element, allowedRoles }) => {
   const user = useContext(MyUserContext);
@@ -103,6 +104,10 @@ const App = () => {
                         <Route
                           path="borrow-slip"
                           element={<ProtectedRoute element={<BorrowSlipPage />} allowedRoles={['ADMIN', 'LIBRARIAN']} />}
+                        />
+                         <Route
+                          path="chat"
+                          element={<ProtectedRoute element={<ChatPage />} allowedRoles={['LIBRARIAN']} />}
                         />
                         <Route
                           path="settings"

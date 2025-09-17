@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 import java.util.Set;
@@ -20,11 +21,13 @@ import java.util.Set;
 @Data
 @Entity
 @Table(name = "printed_book")
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class PrintedBook implements Serializable {
     @Id
     @Basic(optional = false)
     @NotNull
     @Column(name = "id")
+    @EqualsAndHashCode.Include
     private Integer id;
     @Basic(optional = false)
     @NotNull

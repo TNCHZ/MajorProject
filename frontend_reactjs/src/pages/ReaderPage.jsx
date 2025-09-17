@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { authApis, endpoints } from '../configs/Apis';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import useOnlinePayment from '../hook/UseOnlinePayment';
-import ChatBox from './ChatBox';
 
 const ReaderPage = () => {
   const [readers, setReaders] = useState([]);
@@ -23,9 +22,7 @@ const ReaderPage = () => {
   const [formErrors, setFormErrors] = useState({});
   const [preview, setPreview] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showChatModal, setShowChatModal] = useState(false);
   const [selectedReaderId, setSelectedReaderId] = useState(null);
-  const [selectedChatReader, setSelectedChatReader] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [title, setTitle] = useState('');
   const [paymentDate, setPaymentDate] = useState('');
@@ -36,13 +33,11 @@ const ReaderPage = () => {
   const [searchError, setSearchError] = useState('');
   const [membershipTypes, setMembershipTypes] = useState([]);
   const [selectedMembershipId, setSelectedMembershipId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const pageSize = 5;
 
   const { initiateOnlinePayment, loading: paymentLoading, error: paymentError } = useOnlinePayment();
-
-  useEffect(() => {
-    fetchReaders();
-    fetchMembershipTypes();
-  }, []);
 
   useEffect(() => {
     if (selectedMembershipId) {
@@ -57,38 +52,44 @@ const ReaderPage = () => {
     }
   }, [selectedMembershipId, membershipTypes]);
 
-  const fetchMembershipTypes = async () => {
+  const fetchReaders = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await authApis().get(
+        `${endpoints.readers}?page=${currentPage}&size=${pageSize}&sortBy=id`,
+        { headers: { 'Cache-Control': 'no-cache' } }
+      );
+      setReaders(res.data.content || []);
+      setTotalPages(res.data.totalPages || 0);
+    } catch (err) {
+      console.error('Lỗi khi lấy độc giả từ API:', err);
+    }
+    setLoading(false);
+  }, [currentPage, pageSize]);  // dependencies
+
+  const fetchMembershipTypes = useCallback(async () => {
     try {
       const res = await authApis().get(endpoints['type-memberships']);
       setMembershipTypes(res.data || []);
     } catch (err) {
       console.error('Lỗi khi lấy loại membership:', err);
     }
-  };
+  }, []);
 
-  const fetchReaders = async () => {
-    setLoading(true);
-    try {
-      const res = await authApis().get(`${endpoints.readers}?page=0&size=20&sortBy=id`, {
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
-      });
-      setReaders(res.data.content || []);
-    } catch (err) {
-      console.error('Lỗi khi lấy độc giả từ API:', err);
+  useEffect(() => {
+    fetchReaders();
+    fetchMembershipTypes();
+  }, [fetchReaders, fetchMembershipTypes]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      setCurrentPage(newPage);
     }
-    setLoading(false);
   };
 
   const handleRenewMember = (readerId) => {
     setSelectedReaderId(readerId);
     setShowPaymentModal(true);
-  };
-
-  const handleChat = (reader) => {
-    setSelectedChatReader(reader);
-    setShowChatModal(true);
   };
 
   const handlePaymentMethodSelect = (method) => {
@@ -217,11 +218,10 @@ const ReaderPage = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      console.log(res.status);
       if (res.status === 200) {
         setShowModal(false);
         resetForm();
-        fetchReaders(); // Fetch updated reader list
+        fetchReaders();
         alert('Đăng ký độc giả thành công!');
       }
     } catch (err) {
@@ -518,12 +518,6 @@ const ReaderPage = () => {
                   Gia hạn thành viên
                 </button>
               )}
-              <button
-                className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold transition"
-                onClick={() => handleChat(searchResult)}
-              >
-                Chat
-              </button>
             </div>
           </div>
         </div>
@@ -533,52 +527,67 @@ const ReaderPage = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
           </div>
         ) : (
-          <div className="flex flex-col gap-6">
-            {readers.map((reader) => (
-              <div
-                key={reader.id}
-                className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow p-6 flex items-center justify-between"
-              >
-                <div className="flex items-center gap-4">
-                  {reader.avatar ? (
-                    <img src={reader.avatar} alt={reader.name} className="w-16 h-16 object-cover rounded-full shadow" />
-                  ) : (
-                    <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
-                      <span className="text-gray-400 text-xs">No avatar</span>
-                    </div>
-                  )}
-                  <div>
-                    <h3 className="font-semibold text-lg text-gray-900">{reader.name || reader.fullName}</h3>
-                    <p className="text-gray-700">Email: {reader.email}</p>
-                    <p className="text-gray-700">SĐT: {reader.phone}</p>
-                    <p className="text-sm text-gray-500">Giới tính: {reader.gender ? 'Nam' : 'Nữ'}</p>
-                    <div className="mt-1">
-                      Thành viên:{' '}
-                      <span className={reader.isMember ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
-                        {reader.isMember ? 'Đã là thành viên' : 'Chưa là thành viên'}
-                      </span>
+          <>
+            <div className="flex flex-col gap-6">
+              {readers.map((reader) => (
+                <div
+                  key={reader.id}
+                  className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow p-6 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-4">
+                    {reader.avatar ? (
+                      <img src={reader.avatar} alt={reader.name} className="w-16 h-16 object-cover rounded-full shadow" />
+                    ) : (
+                      <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                        <span className="text-gray-400 text-xs">No avatar</span>
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-semibold text-lg text-gray-900">{reader.name || reader.fullName}</h3>
+                      <p className="text-gray-700">Email: {reader.email}</p>
+                      <p className="text-gray-700">SĐT: {reader.phone}</p>
+                      <p className="text-sm text-gray-500">Giới tính: {reader.gender ? 'Nam' : 'Nữ'}</p>
+                      <div className="mt-1">
+                        Thành viên:{' '}
+                        <span className={reader.isMember ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
+                          {reader.isMember ? 'Đã là thành viên' : 'Chưa là thành viên'}
+                        </span>
+                      </div>
                     </div>
                   </div>
+                  <div className="flex gap-2">
+                    {!reader.isMember && (
+                      <button
+                        className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold transition"
+                        onClick={() => handleRenewMember(reader.id)}
+                      >
+                        Gia hạn thành viên
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  {!reader.isMember && (
-                    <button
-                      className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold transition"
-                      onClick={() => handleRenewMember(reader.id)}
-                    >
-                      Gia hạn thành viên
-                    </button>
-                  )}
-                  <button
-                    className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold transition"
-                    onClick={() => handleChat(reader)}
-                  >
-                    Chat
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+            <div className="flex justify-center mt-6 space-x-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 0}
+                className="px-4 py-2 bg-gray-200 text-gray-600 rounded-lg disabled:opacity-50 hover:bg-gray-300"
+              >
+                Trang trước
+              </button>
+              <span className="px-4 py-2 text-gray-600">
+                Trang {currentPage + 1} / {totalPages}
+              </span>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage >= totalPages - 1}
+                className="px-4 py-2 bg-gray-200 text-gray-600 rounded-lg disabled:opacity-50 hover:bg-gray-300"
+              >
+                Trang sau
+              </button>
+            </div>
+          </>
         )
       )}
 
@@ -693,14 +702,6 @@ const ReaderPage = () => {
                 {paymentError && <div className="text-red-500 mt-2">{paymentError}</div>}
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {showChatModal && selectedChatReader && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-6 border w-[500px] shadow-xl rounded-3xl bg-white">
-            <ChatBox reader={selectedChatReader} onClose={() => setShowChatModal(false)} />
           </div>
         </div>
       )}

@@ -18,6 +18,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
@@ -37,7 +38,8 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public User addOrUpdateUser(User u) {
-        if(u.getFile() != null || !u.getFile().isEmpty())
+
+        if(u.getFile() != null && !u.getFile().isEmpty())
         {
             try{
                 Map res = cloudinary.uploader().upload(u.getFile().getBytes(), ObjectUtils.asMap("resource_type", "auto"));
@@ -61,6 +63,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserByUsername(String username) {
         Optional<User> user = this.userRepository.findByUsername(username);
+        return user.orElse(null);
+    }
+
+    @Override
+    public User getUserByEmail(String email) {
+        Optional<User> user = this.userRepository.findByEmail(email);
         return user.orElse(null);
     }
 

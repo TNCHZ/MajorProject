@@ -2,6 +2,7 @@ package com.tnc.library.controllers;
 
 
 import com.tnc.library.dto.InteractDTO;
+import com.tnc.library.dto.InteractResponseDTO;
 import com.tnc.library.pojo.Book;
 import com.tnc.library.pojo.Interact;
 import com.tnc.library.pojo.User;
@@ -57,16 +58,26 @@ public class ApiInteractController {
     @GetMapping("/interacts/book/{id}")
     public ResponseEntity<?> getInteractByBookId(@PathVariable Integer id,
                                                  @RequestParam(defaultValue = "0") int page,
-                                                 @RequestParam(defaultValue = "5") int size)
-    {
-        try{
+                                                 @RequestParam(defaultValue = "5") int size) {
+        try {
             Book book = bookService.getBookByBookId(id);
             Page<Interact> interacts = interactService.getInteractsByBookId(book, page, size);
-            return ResponseEntity.ok(interacts);
+
+            Page<InteractResponseDTO> dtoPage = interacts.map(interact -> {
+                InteractResponseDTO dto = new InteractResponseDTO();
+                dto.setId(interact.getId());
+                dto.setReact(interact.getReact());
+                dto.setComment(interact.getComment());
+                dto.setName(interact.getReaderId().getUser().getFullName());
+                dto.setAvatar(interact.getReaderId().getUser().getAvatar());
+                return dto;
+            });
+
+            return ResponseEntity.ok(dtoPage);
         } catch (Exception ex) {
             ex.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Lỗi" + ex.getMessage());
+                    .body("Lỗi: " + ex.getMessage());
         }
     }
 }

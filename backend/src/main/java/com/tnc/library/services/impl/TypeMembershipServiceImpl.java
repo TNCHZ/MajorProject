@@ -25,4 +25,14 @@ public class TypeMembershipServiceImpl implements TypeMembershipService {
         Optional<TypeMembership> typeMembership = this.typeMembershipRepository.findById(id);
         return typeMembership.orElse(null);
     }
+
+    @Override
+    public TypeMembership addOrUpdateTypeMembership(TypeMembership typeMembership) {
+        return this.typeMembershipRepository.save(typeMembership);
+    }
+
+    @Override
+    public void deleteMembership(TypeMembership typeMembership) {
+        this.typeMembershipRepository.delete(typeMembership);
+    }
 }

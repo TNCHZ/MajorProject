@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 import java.util.Set;
@@ -19,12 +20,14 @@ import java.util.Set;
 @Data
 @Entity
 @Table(name = "reader")
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Reader implements Serializable {
 
     @Id
     @Basic(optional = false)
     @NotNull
     @Column(name = "id")
+    @EqualsAndHashCode.Include
     private Integer id;
     @Basic(optional = false)
     @NotNull

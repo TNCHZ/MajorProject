@@ -9,4 +9,6 @@ import java.util.List;
 public interface InteractService {
     Interact addOrUpdateInteract(Interact i);
     Page<Interact> getInteractsByBookId(Book book, int page, int size);
+    Interact getInteractById(Integer id);
+    void deleteInteract(Interact interact);
 }

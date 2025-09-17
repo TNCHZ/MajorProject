@@ -44,6 +44,7 @@ public class ApiBorrowSlipController {
     @Autowired
     private PrintedBookService printedBookService;
 
+
     @PostMapping("/add/borrow-slip")
     public ResponseEntity<?> addBorrowSlip(
             @RequestPart("borrow-slip") BorrowSlipDTO dto,
@@ -72,23 +73,22 @@ public class ApiBorrowSlipController {
 
             for (Integer bookId : bookIds) {
                 PrintedBook printedBook = this.printedBookService.getBookByPrintedBookId(bookId);
-                if(printedBook.getBorrowCount() == printedBook.getTotalCopy())
+                if (printedBook.getBorrowCount() == printedBook.getTotalCopy())
                     return ResponseEntity.ok("Sách" + printedBook.getBook().getTitle() + " đã hết");
-                else {
-                    printedBook.setBorrowCount(printedBook.getBorrowCount() + 1);
-                    this.printedBookService.addOrUpdatePrintedBook(printedBook);
-                }
             }
 
             BorrowSlip borrowSlip = new BorrowSlip();
             borrowSlip.setBorrowDate(sdf.parse(dto.getBorrowDate()));
             borrowSlip.setDueDate(sdf.parse(dto.getDueDate()));
-            borrowSlip.setStatus(BorrowStatus.BORROWING);
+
             borrowSlip.setNote(dto.getNote());
             borrowSlip.setReaderId(reader);
 
             if (currentUser.getLibrarian() != null) {
                 borrowSlip.setLibrarianId(currentUser.getLibrarian());
+                borrowSlip.setStatus(BorrowStatus.BORROWING);
+            } else if (currentUser.getReader() != null) {
+                borrowSlip.setStatus(BorrowStatus.RESERVED);
             }
 
 
@@ -125,31 +125,46 @@ public class ApiBorrowSlipController {
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
             BorrowSlip borrowSlip = this.borrowSlipService.getBorrowSlipById(id);
+            BorrowStatus status = BorrowStatus.valueOf(updates.get("status").toString().toUpperCase());
 
 
-            if(borrowSlip.getStatus().equals(BorrowStatus.RESERVED))
+            if (borrowSlip.getStatus().equals(BorrowStatus.RETURNED))
                 return ResponseEntity.ok("Sách đã được trả");
 
+            if (status.equals(BorrowStatus.BORROWING)) {
+                Date today1 = new Date(); // ngày hôm nay
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(today1);
+                cal.add(Calendar.MONTH, 1); // cộng thêm 1 tháng
+                Date dueDate = cal.getTime();
+                borrowSlip.setBorrowDate(today);
+                borrowSlip.setDueDate(dueDate);
+                borrowSlip.setStatus(status);
+                borrowSlip.setLibrarianId(currentUser.getLibrarian());
+                this.borrowSlipService.addOrUpdateBorrowSlip(borrowSlip);
+                return ResponseEntity.ok("Sách đã cho mượn thành công");
+            }
 
-            BorrowStatus status = BorrowStatus.valueOf(updates.get("status").toString().toUpperCase());
             borrowSlip.setReturnDate(new Date());
             borrowSlip.setStatus(status);
             BorrowSlip borrowSlip1 = this.borrowSlipService.addOrUpdateBorrowSlip(borrowSlip);
 
+
+
+            List<Integer> bookIds = (List<Integer>) updates.get("bookIds");
             Duration duration = Duration.between(borrowSlip1.getDueDate().toInstant(), borrowSlip1.getReturnDate().toInstant());
-            if (duration.isNegative() || duration.isZero()){
-                List<Integer> bookIds = (List<Integer>) updates.get("bookIds");
-                for (Integer bookId : bookIds) {
-                    PrintedBook printedBook = this.printedBookService.getBookByPrintedBookId(bookId);
-                    printedBook.setTotalCopy(printedBook.getTotalCopy() + 1);
-                    this.printedBookService.addOrUpdatePrintedBook(printedBook);
-                }
-                return ResponseEntity.ok("Trả sách thành công");
-            }
-            else
-                if (borrowSlip1.getFine() == null) {
+            if (duration.isNegative() || duration.isZero()) {
+                if (status.equals(BorrowStatus.RETURNED)) {
+                    for (Integer bookId : bookIds) {
+                        PrintedBook printedBook = this.printedBookService.getBookByPrintedBookId(bookId);
+                        System.out.println(printedBook.getBorrowCount());
+                        printedBook.setBorrowCount(printedBook.getBorrowCount() - 1);
+                        this.printedBookService.addOrUpdatePrintedBook(printedBook);
+                    }
+                    return ResponseEntity.ok("Trả sách thành công");
+                } else {
+                    String code = updates.get("status").toString().toUpperCase();
                     TypeFine typeFine = new TypeFine();
-                    String code = "OVERDUE_AND_" + updates.get("status").toString().toUpperCase();
                     typeFine = this.typeFineService.findByCode(code);
 
                     Fine fine = new Fine();
@@ -159,26 +174,65 @@ public class ApiBorrowSlipController {
                     fine.setTypeId(typeFine);
                     System.out.println(code);
                     TypeFineEnum typeFineEnum = TypeFineEnum.valueOf(code);
-                    fine.setAmount(typeFineEnum.calculateFineAmount(BigDecimal.valueOf(Double.parseDouble(updates.get("book_price").toString())) , (int) duration.toDays()));
+                    fine.setAmount(typeFineEnum.calculateFineAmount(BigDecimal.valueOf(Double.parseDouble(updates.get("book_price").toString())), (int) duration.toDays()));
                     fine.setReaderId(borrowSlip1.getReaderId());
                     fine.setLibrarianId(currentUser.getLibrarian());
                     fine.setBorrowSlip(borrowSlip1);
                     this.fineService.addOrUpdateFine(fine);
 
-                    List<Integer> bookIds = (List<Integer>) updates.get("bookIds");
-
-                    if(status.equals(BorrowStatus.LOST))
+                    if (status.equals(BorrowStatus.LOST)) {
                         for (Integer bookId : bookIds) {
                             PrintedBook printedBook = this.printedBookService.getBookByPrintedBookId(bookId);
                             printedBook.setBorrowCount(printedBook.getBorrowCount() - 1);
                             printedBook.setTotalCopy(printedBook.getTotalCopy() - 1);
                             this.printedBookService.addOrUpdatePrintedBook(printedBook);
+                        }
+                    } else if (status.equals(BorrowStatus.DAMAGED)) {
+                        for (Integer bookId : bookIds) {
+                            PrintedBook printedBook = this.printedBookService.getBookByPrintedBookId(bookId);
+                            printedBook.setBorrowCount(printedBook.getBorrowCount() - 1);
+                            this.printedBookService.addOrUpdatePrintedBook(printedBook);
+                        }
+                        return ResponseEntity.ok("Trả sách thành công");
                     }
-
                 }
+
+            } else if (borrowSlip1.getFine() == null) {
+                TypeFine typeFine = new TypeFine();
+                String code = "OVERDUE_AND_" + updates.get("status").toString().toUpperCase();
+                typeFine = this.typeFineService.findByCode(code);
+
+                Fine fine = new Fine();
+                fine.setReason(typeFine.getName());
+                fine.setPaid(false);
+                fine.setIssuedAt(today);
+                fine.setTypeId(typeFine);
+                System.out.println(code);
+                TypeFineEnum typeFineEnum = TypeFineEnum.valueOf(code);
+                fine.setAmount(typeFineEnum.calculateFineAmount(BigDecimal.valueOf(Double.parseDouble(updates.get("book_price").toString())), (int) duration.toDays()));
+                fine.setReaderId(borrowSlip1.getReaderId());
+                fine.setLibrarianId(currentUser.getLibrarian());
+                fine.setBorrowSlip(borrowSlip1);
+                this.fineService.addOrUpdateFine(fine);
+
+
+                if (status.equals(BorrowStatus.LOST)) {
+                    for (Integer bookId : bookIds) {
+                        PrintedBook printedBook = this.printedBookService.getBookByPrintedBookId(bookId);
+                        printedBook.setBorrowCount(printedBook.getBorrowCount() - 1);
+                        printedBook.setTotalCopy(printedBook.getTotalCopy() - 1);
+                        this.printedBookService.addOrUpdatePrintedBook(printedBook);
+                    }
+                } else if (status.equals(BorrowStatus.RETURNED)) {
+                    for (Integer bookId : bookIds) {
+                        PrintedBook printedBook = this.printedBookService.getBookByPrintedBookId(bookId);
+                        printedBook.setBorrowCount(printedBook.getBorrowCount() - 1);
+                        this.printedBookService.addOrUpdatePrintedBook(printedBook);
+                    }
+                }
+
+            }
             return ResponseEntity.ok("Đã thêm phiếu phạt");
-
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -213,6 +267,7 @@ public class ApiBorrowSlipController {
     @GetMapping("/borrow-slip/{id}")
     public ResponseEntity<?> getBooksByBorrowSlip(@PathVariable Integer id) {
         BorrowSlip borrowSlip = this.borrowSlipService.getBorrowSlipById(id);
+
         List<PrintedBookBorrowSlip> books = this.printedBookBorrowSlipService.getByBorrowSlip(borrowSlip);
 
         if (books.isEmpty()) {
@@ -232,6 +287,21 @@ public class ApiBorrowSlipController {
         return ResponseEntity.ok(printedBooks);
     }
 
+    @GetMapping("/borrow-slip/by-reader")
+    public ResponseEntity<?> getBorrowSlipByReader(Principal principal,
+                                                   @RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "10") int size) {
+        try {
+            String username = principal.getName();
+            User currentUser = userSer.getUserByUsername(username);
+            Page<BorrowSlip> borrowSlips = borrowSlipService.getBorrowSlipsByReader(currentUser.getReader(), page, size);
+            return ResponseEntity.ok(borrowSlips);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @GetMapping("/borrow-slip/count")
     public ResponseEntity<?> countBorrowingSlips(@RequestParam String status) {
         BorrowStatus borrowStatus = BorrowStatus.valueOf(status);
@@ -242,6 +312,52 @@ public class ApiBorrowSlipController {
     @GetMapping("/borrow-slip/count/monthly")
     public ResponseEntity<List<MonthlyBorrowingDTO>> getMonthlyBorrowings(@RequestParam int year) {
         return ResponseEntity.ok(borrowSlipService.getMonthlyBorrowings(year));
+    }
+
+
+    @DeleteMapping("/borrow-slip/delete/{id}")
+    public ResponseEntity<?> deleteBorrowSlip(@PathVariable Integer id, Principal principal) {
+        try {
+            String username = principal.getName();
+            User currentUser = userSer.getUserByUsername(username);
+            if (currentUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Người dùng không hợp lệ");
+            }
+            BorrowSlip borrowSlip = this.borrowSlipService.getBorrowSlipById(id);
+
+            this.borrowSlipService.deleteBorrowSlip(borrowSlip);
+            return ResponseEntity.ok("Xóa thành công");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @PostMapping("/borrow-slip/add/by-reader")
+    public ResponseEntity<?> addBorrowSlipByReader(@RequestBody Map<String, List<Map<String, Integer>>> body, Principal principal) {
+        try {
+            String username = principal.getName();
+            User currentUser = this.userSer.getUserByUsername(username);
+
+            List<Map<String, Integer>> books = body.get("books");
+
+            // Chuyển từ List<Map<String, Integer>> sang List<Integer>
+            List<Integer> bookIds = books.stream()
+                    .map(b -> b.get("bookId"))
+                    .toList();
+
+            BorrowSlip borrowSlip = new BorrowSlip();
+            borrowSlip.setReaderId(currentUser.getReader());
+            borrowSlip.setStatus(BorrowStatus.RESERVED);
+
+            BorrowSlip savedBorrowSlip = borrowSlipService.addOrUpdateBorrowSlip(borrowSlip);
+
+            boolean success = printedBookBorrowSlipService.addOrUpdatePBBS(savedBorrowSlip, bookIds);
+
+            return ResponseEntity.ok("OK");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

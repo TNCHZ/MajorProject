@@ -8,4 +8,6 @@ public interface TypeFineService {
     List<TypeFine> getTypeFine();
     TypeFine findById(Integer id);
     TypeFine findByCode(String code);
+    TypeFine getTypeFineById(Integer id);
+    void deleteTypeFine(TypeFine typeFine);
 }

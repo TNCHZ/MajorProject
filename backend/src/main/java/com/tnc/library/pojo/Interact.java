@@ -4,6 +4,7 @@
  */
 package com.tnc.library.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -44,9 +45,11 @@ public class Interact implements Serializable {
     private String comment;
     @JoinColumn(name = "book_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
+    @JsonIgnore
     private Book bookId;
     @JoinColumn(name = "reader_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
+    @JsonIgnore
     private Reader readerId;
 
 }

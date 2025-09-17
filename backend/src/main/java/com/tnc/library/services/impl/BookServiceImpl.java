@@ -32,19 +32,21 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public Book addOrUpdateBook(Book b) {
-
-        if(b.getFile() != null || !b.getFile().isEmpty())
-        {
-            try{
-                Map res = cloudinary.uploader().upload(b.getFile().getBytes(), ObjectUtils.asMap("resource_type", "image"));
+        try {
+            if (b.getFile() != null && !b.getFile().isEmpty()) {
+                Map res = cloudinary.uploader().upload(
+                        b.getFile().getBytes(),
+                        ObjectUtils.asMap("resource_type", "image")
+                );
                 b.setImage(res.get("secure_url").toString());
-            } catch (IOException ex) {
-                Logger.getLogger(UserServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
             }
+        } catch (IOException ex) {
+            Logger.getLogger(UserServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         return this.bookRepository.save(b);
     }
+
 
 
     @Override

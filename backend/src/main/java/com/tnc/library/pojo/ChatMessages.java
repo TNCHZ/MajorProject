@@ -1,6 +1,8 @@
 package com.tnc.library.pojo;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.tnc.library.enums.SenderType;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -16,13 +18,19 @@ public class ChatMessages {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conversation_id", nullable = false)
+    private Conversation conversation;
+
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "receiver_id", nullable = false)
-    private User receiver;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "sender_type", nullable = false)
+    private SenderType senderType;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;

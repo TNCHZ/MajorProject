@@ -186,13 +186,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">📚 Library Admin Dashboard</h1>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700">
-          + Thêm mới
-        </button>
-      </div>
 
       {/* Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

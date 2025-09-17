@@ -9,6 +9,6 @@ public interface ReaderService {
     Reader addOrUpdateReader(Reader r);
     Reader findReaderById(Integer id);
     Integer countAllReader();
-
+    void deleteReader(Reader reader);
     public Page<Reader> getReaders(int page, int size, String sortBy);
 }

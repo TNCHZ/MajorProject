@@ -2,6 +2,7 @@ package com.tnc.library.controllers;
 
 import com.tnc.library.pojo.Reader;
 import com.tnc.library.pojo.User;
+import com.tnc.library.services.MembershipRenewalService;
 import com.tnc.library.services.ReaderService;
 import com.tnc.library.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,8 +58,38 @@ public class ApiReaderController {
             Map<String, Object> readerMap = new HashMap<>();
             readerMap.put("id", reader.getId());
             readerMap.put("name", reader.getUser().getFullName());
+            readerMap.put("avatar", reader.getUser().getAvatar());
             readerMap.put("phone", reader.getUser().getPhone());
             readerMap.put("email", reader.getUser().getEmail());
+            readerMap.put("gender", reader.getUser().isGender());
+            readerMap.put("isMember", reader.isMember());
+
+            return ResponseEntity.ok(readerMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi khi tìm Reader: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/reader/{id}")
+    public ResponseEntity<?> getReaderById(@PathVariable Integer id) {
+        try {
+            Reader reader = this.readerSer.findReaderById(id);
+            if (reader == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Không tìm thấy Reader");
+            }
+
+            Map<String, Object> readerMap = new HashMap<>();
+            readerMap.put("id", reader.getId());
+            readerMap.put("firstName", reader.getUser().getFirstName());
+            readerMap.put("lastName", reader.getUser().getLastName());
+            readerMap.put("avatar", reader.getUser().getAvatar());
+            readerMap.put("phone", reader.getUser().getPhone());
+            readerMap.put("email", reader.getUser().getEmail());
+            readerMap.put("gender", reader.getUser().isGender());
+            readerMap.put("isMember", reader.isMember());
 
             return ResponseEntity.ok(readerMap);
         } catch (Exception e) {

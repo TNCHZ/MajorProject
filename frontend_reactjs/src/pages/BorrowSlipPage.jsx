@@ -7,7 +7,7 @@ const BorrowSlipPage = () => {
   const [markingLost, setMarkingLost] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showLostBooksModal, setShowLostBooksModal] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false); // Toggle for add borrow slip modal
+  const [showAddModal, setShowAddModal] = useState(false);
   const [lostBooks, setLostBooks] = useState([]);
   const [selectedBookIds, setSelectedBookIds] = useState([]);
   const [selectedSlipId, setSelectedSlipId] = useState(null);
@@ -139,7 +139,9 @@ const BorrowSlipPage = () => {
   };
 
   const openStatusModal = (slipId) => {
+    const slip = borrowSlips.find((s) => s.id === slipId);
     setSelectedSlipId(slipId);
+    setSelectedStatus(slip?.status || null);
     setShowStatusModal(true);
   };
 
@@ -151,35 +153,59 @@ const BorrowSlipPage = () => {
       return;
     }
 
-    if (!window.confirm('Bạn có chắc muốn xác nhận trả sách cho phiếu mượn này?')) {
+    if (status === 'RETURNED' || status === 'BORROWING') {
+      if (!window.confirm(`Bạn có chắc muốn xác nhận ${status === 'RETURNED' ? 'trả sách' : 'đã lấy sách'} cho phiếu mượn này?`)) {
+        return;
+      }
+
+      setMarkingLost(true);
+      try {
+        const res = await authApis().get(endpoints['books-by-borrow-slip'](slipId));
+        const books = res.data || [];
+        const bookIds = books.map((book) => book.id);
+
+        const payload = {
+          status,
+          book_price: 0,
+          bookIds: status === 'RETURNED' ? bookIds : [],
+          returnDate: status === 'RETURNED'
+            ? `${new Date().getDate().toString().padStart(2, '0')}/${(new Date().getMonth() + 1)
+              .toString()
+              .padStart(2, '0')}/${new Date().getFullYear()}`
+            : null,
+        };
+
+        const updateEndpoint =
+          typeof endpoints['update-borrow-slip'] === 'function'
+            ? endpoints['update-borrow-slip'](slipId)
+            : endpoints['update-borrow-slip'].replace('{id}', slipId);
+
+        const response = await authApis().patch(updateEndpoint, payload);
+        alert(response.data || `${status === 'RETURNED' ? 'Trả sách' : 'Đã lấy sách'} thành công`);
+        fetchBorrowSlips();
+        setShowStatusModal(false);
+      } catch (err) {
+        console.error(`Lỗi khi cập nhật trạng thái ${status}:`, err);
+        alert(`Có lỗi xảy ra khi ${status === 'RETURNED' ? 'xác nhận trả sách' : 'xác nhận đã lấy sách'}: ${err.response?.data || err.message}`);
+      }
+      setMarkingLost(false);
       return;
     }
+  };
 
-    setMarkingLost(true);
+  const deleteBorrowSlip = async (slipId) => {
+    if (!window.confirm('Bạn có chắc muốn xóa phiếu mượn này?')) {
+      return;
+    }
     try {
-      const payload = {
-        status,
-        book_price: 0,
-        bookIds: [],
-        returnDate: `${new Date().getDate().toString().padStart(2, '0')}/${(new Date().getMonth() + 1)
-          .toString()
-          .padStart(2, '0')}/${new Date().getFullYear()}`,
-      };
-
-      const updateEndpoint =
-        typeof endpoints['update-borrow-slip'] === 'function'
-          ? endpoints['update-borrow-slip'](slipId)
-          : endpoints['update-borrow-slip'].replace('{id}', slipId);
-
-      const response = await authApis().patch(updateEndpoint, payload);
-      alert(response.data || 'Trả sách thành công');
+      const response = await authApis().delete(endpoints['borrow-slip-delete'](slipId));
+      alert(response.data || 'Xóa phiếu mượn thành công');
       fetchBorrowSlips();
       setShowStatusModal(false);
     } catch (err) {
-      console.error(`Lỗi khi cập nhật trạng thái ${status}:`, err);
-      alert(`Có lỗi xảy ra khi xác nhận trả sách: ${err.response?.data || err.message}`);
+      console.error('Lỗi khi xóa phiếu mượn:', err);
+      alert(`Có lỗi xảy ra khi xóa phiếu mượn: ${err.response?.data || err.message}`);
     }
-    setMarkingLost(false);
   };
 
   const confirmBooksStatus = async () => {
@@ -220,8 +246,7 @@ const BorrowSlipPage = () => {
     } catch (err) {
       console.error(`Lỗi khi xác nhận trạng thái ${selectedStatus}:`, err);
       alert(
-        `Có lỗi xảy ra khi đánh dấu sách ${selectedStatus === 'LOST' ? 'mất' : 'hư'}: ${
-          err.response?.data || err.message
+        `Có lỗi xảy ra khi đánh dấu sách ${selectedStatus === 'LOST' ? 'mất' : 'hư'}: ${err.response?.data || err.message
         }`
       );
     }
@@ -240,7 +265,6 @@ const BorrowSlipPage = () => {
     setSelectedSlipId(null);
   };
 
-  // Add borrow slip handlers
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({
@@ -367,13 +391,21 @@ const BorrowSlipPage = () => {
                 {slip.fine === true ? 'Đã nộp' : slip.fine === false ? 'Chưa nộp' : 'Không có phiếu phạt'}
               </div>
               <div className="hidden"></div>
-              <div className="flex justify-center items-center">
+              <div className="flex justify-center items-center space-x-2">
                 {slip.status !== 'LOST' && slip.status !== 'RETURNED' && slip.status !== 'DAMAGED' && (
                   <button
                     onClick={() => openStatusModal(slip.id)}
                     className="px-3 py-1 text-sm text-white rounded-lg font-medium transition-colors duration-200 bg-blue-600 hover:bg-blue-700"
                   >
                     Cập nhật trạng thái
+                  </button>
+                )}
+                {slip.status === 'RESERVED' && (
+                  <button
+                    onClick={() => deleteBorrowSlip(slip.id)}
+                    className="px-3 py-1 text-sm text-white rounded-lg font-medium transition-colors duration-200 bg-red-600 hover:bg-red-700"
+                  >
+                    Xóa
                   </button>
                 )}
               </div>
@@ -405,9 +437,7 @@ const BorrowSlipPage = () => {
             </div>
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* Form bên trái (chiếm 2/3) */}
                 <div className="space-y-8 col-span-2">
-                  {/* Độc giả */}
                   <div>
                     <label className="block text-base font-semibold text-gray-700 mb-2">Số điện thoại độc giả</label>
                     <input
@@ -430,8 +460,6 @@ const BorrowSlipPage = () => {
                       </div>
                     )}
                   </div>
-
-                  {/* Sách */}
                   <div>
                     <label className="block text-base font-semibold text-gray-700 mb-2">Mã ISBN sách</label>
                     <div className="flex gap-2">
@@ -465,8 +493,6 @@ const BorrowSlipPage = () => {
                       </div>
                     )}
                   </div>
-
-                  {/* Thông tin phiếu mượn */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-base font-semibold text-gray-700 mb-2">
@@ -508,8 +534,6 @@ const BorrowSlipPage = () => {
                     />
                   </div>
                 </div>
-
-                {/* List sách đã chọn bên phải */}
                 <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 shadow col-span-1 h-fit">
                   <h3 className="text-xl font-bold text-gray-700 mb-4 text-center">Danh sách sách đã chọn</h3>
                   {selectedBooks.length === 0 ? (
@@ -584,24 +608,44 @@ const BorrowSlipPage = () => {
               </button>
             </div>
             <div className="flex flex-col gap-3">
-              <button
-                onClick={() => updateBorrowSlipStatus(selectedSlipId, 'RESERVED')}
-                className="px-4 py-2 text-white rounded-lg font-medium transition-colors duration-200 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800"
-              >
-                Trả sách
-              </button>
-              <button
-                onClick={() => updateBorrowSlipStatus(selectedSlipId, 'LOST')}
-                className="px-4 py-2 text-white rounded-lg font-medium transition-colors duration-200 bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800"
-              >
-                Mất sách
-              </button>
-              <button
-                onClick={() => updateBorrowSlipStatus(selectedSlipId, 'DAMAGED')}
-                className="px-4 py-2 text-white rounded-lg font-medium transition-colors duration-200 bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-800"
-              >
-                Hư sách
-              </button>
+              {selectedStatus === 'RESERVED' && (
+                <>
+                  <button
+                    onClick={() => updateBorrowSlipStatus(selectedSlipId, 'BORROWING')}
+                    className="px-4 py-2 text-white rounded-lg font-medium transition-colors duration-200 bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800"
+                  >
+                    Xác nhận đang mượn
+                  </button>
+                  <button
+                    onClick={() => deleteBorrowSlip(selectedSlipId)}
+                    className="px-4 py-2 text-white rounded-lg font-medium transition-colors duration-200 bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800"
+                  >
+                    Xóa
+                  </button>
+                </>
+              )}
+              {selectedStatus !== 'RESERVED' && selectedStatus !== 'LOST' && selectedStatus !== 'RETURNED' && selectedStatus !== 'DAMAGED' && (
+                <>
+                  <button
+                    onClick={() => updateBorrowSlipStatus(selectedSlipId, 'RETURNED')}
+                    className="px-4 py-2 text-white rounded-lg font-medium transition-colors duration-200 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800"
+                  >
+                    Trả sách
+                  </button>
+                  <button
+                    onClick={() => updateBorrowSlipStatus(selectedSlipId, 'LOST')}
+                    className="px-4 py-2 text-white rounded-lg font-medium transition-colors duration-200 bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800"
+                  >
+                    Mất sách
+                  </button>
+                  <button
+                    onClick={() => updateBorrowSlipStatus(selectedSlipId, 'DAMAGED')}
+                    className="px-4 py-2 text-white rounded-lg font-medium transition-colors duration-200 bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-800"
+                  >
+                    Hư sách
+                  </button>
+                </>
+              )}
               <button
                 onClick={closeStatusModal}
                 className="px-4 py-2 text-white rounded-lg font-medium transition-colors duration-200 bg-gray-500 hover:bg-gray-600"
@@ -697,13 +741,12 @@ const BorrowSlipPage = () => {
               <button
                 onClick={confirmBooksStatus}
                 disabled={markingLost || lostBooks.length === 0}
-                className={`px-4 py-2 rounded-lg text-white font-medium transition-colors duration-200 ${
-                  markingLost || lostBooks.length === 0
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : selectedStatus === 'LOST'
+                className={`px-4 py-2 rounded-lg text-white font-medium transition-colors duration-200 ${markingLost || lostBooks.length === 0
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : selectedStatus === 'LOST'
                     ? 'bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800'
                     : 'bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-800'
-                }`}
+                  }`}
               >
                 {markingLost ? 'Đang xử lý...' : 'Xác nhận'}
               </button>

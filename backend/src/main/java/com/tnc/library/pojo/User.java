@@ -91,9 +91,7 @@ public class User implements Serializable {
     @JsonIgnore
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ChatMessages> sentMessages;
-    @JsonIgnore
-    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ChatMessages> receivedMessages;
+
 
     public String getFullName()
     {

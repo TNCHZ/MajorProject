@@ -16,6 +16,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -34,6 +35,7 @@ public class ApiPaymentController {
     @GetMapping("/payment/create")
     public ResponseEntity<?> createPayment(@RequestParam("amount") long amount,
                                            @RequestParam("type") String type) throws UnsupportedEncodingException {
+
         if (amount <= 0) {
             return ResponseEntity.badRequest().body("Số tiền phải lớn hơn 0");
         }
@@ -142,8 +144,17 @@ public class ApiPaymentController {
     public ResponseEntity<Map<String, BigDecimal>> getRevenue(
             @RequestParam int year,
             @RequestParam(required = false) Integer month) {
-        return ResponseEntity.ok(paymentService.getRevenueByType(year, month));
+
+        Map<String, BigDecimal> revenueMap = paymentService.getRevenueByType(year, month);
+
+        // Loại bỏ key null
+        Map<String, BigDecimal> cleanMap = revenueMap.entrySet().stream()
+                .filter(e -> e.getKey() != null)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        return ResponseEntity.ok(cleanMap);
     }
+
 
     @GetMapping("/payments")
     public Page<Map<String, Object>> getReaders(

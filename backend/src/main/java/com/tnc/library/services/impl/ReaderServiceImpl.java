@@ -43,6 +43,11 @@ public class ReaderServiceImpl implements ReaderService {
     }
 
     @Override
+    public void deleteReader(Reader reader) {
+        this.readerRepository.delete(reader);
+    }
+
+    @Override
     public Page<Reader> getReaders(int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         return this.readerRepository.findAll(pageable);

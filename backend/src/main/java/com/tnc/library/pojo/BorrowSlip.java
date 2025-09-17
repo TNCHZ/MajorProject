@@ -4,6 +4,7 @@
  */
 package com.tnc.library.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tnc.library.enums.BorrowStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -28,12 +29,10 @@ public class BorrowSlip implements Serializable {
     @Column(name = "id")
     private Integer id;
     @Basic(optional = false)
-    @NotNull
     @Column(name = "borrow_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date borrowDate;
     @Basic(optional = false)
-    @NotNull
     @Column(name = "due_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date dueDate;
@@ -52,12 +51,29 @@ public class BorrowSlip implements Serializable {
     private String note;
     @JoinColumn(name = "reader_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
+    @JsonIgnore
     private Reader readerId;
     @JoinColumn(name = "librarian_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = true)
+    @JsonIgnore
     private Librarian librarianId;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "borrowSlipId")
+    @JsonIgnore
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "borrowSlipId", orphanRemoval = true)
     private Set<PrintedBookBorrowSlip> printedBookBorrowSlipSet;
+    @JsonIgnore
     @OneToOne(mappedBy = "borrowSlip", cascade = CascadeType.ALL)
     private Fine fine;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BorrowSlip)) return false;
+        BorrowSlip that = (BorrowSlip) o;
+        return id != null && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
 }

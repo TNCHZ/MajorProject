@@ -19,4 +19,9 @@ public class MembershipRenewalServiceImpl implements MembershipRenewalService {
         return this.membershipRenewalRepository.save(m);
     }
 
+    @Override
+    public boolean canReaderReadEbook(Integer id) {
+        return membershipRenewalRepository.canReaderReadEbook(id);
+    }
+
 }

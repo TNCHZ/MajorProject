@@ -11,16 +11,17 @@ import java.util.List;
 public interface BorrowSlipService {
     BorrowSlip addOrUpdateBorrowSlip(BorrowSlip b);
 
-    List<BorrowSlip> getBorrowSlipByUserId(Reader readerId);
+    Page<BorrowSlip> getBorrowSlipsByReader(Reader reader, int page, int size);
 
     BorrowSlip getBorrowSlipById(int id);
 
     void deleteBorrowSlip(BorrowSlip b);
-
 
     List<MonthlyBorrowingDTO> getMonthlyBorrowings(int year);
 
     Integer countByStatus(BorrowStatus borrowStatus);
 
     public Page<BorrowSlip> getBorrowSlips(int page, int size, String sortBy);
+
+    List<BorrowSlip> getBorrowingSlipsByBookId(Integer bookId, BorrowStatus borrowStatus);
 }

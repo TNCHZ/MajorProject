@@ -33,8 +33,9 @@ public class BorrowSlipServiceImpl implements BorrowSlipService {
     }
 
     @Override
-    public List<BorrowSlip> getBorrowSlipByUserId(Reader readerId) {
-        return this.borrowSlipRepository.findByReaderId(readerId);
+    public Page<BorrowSlip> getBorrowSlipsByReader(Reader reader, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        return borrowSlipRepository.findByReaderId(reader, pageable);
     }
 
     @Override
@@ -74,5 +75,10 @@ public class BorrowSlipServiceImpl implements BorrowSlipService {
     public Page<BorrowSlip> getBorrowSlips(int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         return this.borrowSlipRepository.findAll(pageable);
+    }
+
+    @Override
+    public List<BorrowSlip> getBorrowingSlipsByBookId(Integer bookId, BorrowStatus borrowStatus) {
+        return borrowSlipRepository.findBorrowingByBookId(bookId, borrowStatus);
     }
 }

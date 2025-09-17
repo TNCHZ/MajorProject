@@ -33,4 +33,15 @@ public class TypeFineServiceImpl implements TypeFineService {
         return typeFine.orElse(null);
     }
 
+    @Override
+    public TypeFine getTypeFineById(Integer id) {
+        Optional<TypeFine> typeFine = this.typeFineRepository.findById(id);
+        return typeFine.orElse(null);
+    }
+
+    @Override
+    public void deleteTypeFine(TypeFine typeFine) {
+        this.typeFineRepository.delete(typeFine);
+    }
+
 }

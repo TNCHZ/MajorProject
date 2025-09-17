@@ -2,12 +2,12 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 import {
   HomeIcon,
   BookOpenIcon,
-  Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
   UserIcon,
   ClipboardDocumentListIcon,
   CurrencyDollarIcon,
   UsersIcon,
+  ChatBubbleLeftIcon,
 } from "@heroicons/react/24/outline";
 import { useContext } from "react";
 import { MyUserContext } from "../configs/Context";
@@ -56,10 +56,10 @@ const tabs = [
     roles: ["ADMIN", "LIBRARIAN"],
   },
   {
-    name: "Cài đặt",
-    path: "settings",
-    icon: <Cog6ToothIcon className="w-6 h-6 mr-3 transition-all duration-300 group-hover:rotate-90 group-hover:text-blue-500" />,
-    roles: ["ADMIN"],
+    name: "Quản lý trò chuyện",
+    path: "chat",
+    icon: <ChatBubbleLeftIcon className="w-6 h-6 mr-3 transition-all duration-300 group-hover:scale-110 group-hover:text-blue-500" />,
+    roles: ["LIBRARIAN"],
   },
   {
     name: "Đăng xuất",

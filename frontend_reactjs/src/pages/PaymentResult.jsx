@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { authApis } from "../configs/Apis";
+import { FaCheckCircle, FaTimesCircle, FaExclamationCircle, FaSpinner } from "react-icons/fa";
 
 function PaymentResult({ storageKey }) {
   const location = useLocation();
@@ -60,7 +61,7 @@ function PaymentResult({ storageKey }) {
         }
 
         localStorage.removeItem(storageKey);
-        
+
         setIsProcessing(false);
       } catch (err) {
         console.error("Lỗi khi hoàn tất thanh toán:", err);
@@ -80,62 +81,72 @@ function PaymentResult({ storageKey }) {
     }
   };
 
-  return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
-      {isProcessing ? (
-        <div>
-          <h2>Đang xử lý thanh toán...</h2>
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+  const renderContent = () => {
+    if (isProcessing) {
+      return (
+        <div className="flex flex-col items-center justify-center p-8 bg-white rounded-3xl shadow-2xl">
+          <FaSpinner className="text-5xl text-blue-500 animate-spin mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Đang xử lý thanh toán...</h2>
+          <p className="text-gray-600 text-center">Vui lòng đợi trong giây lát, chúng tôi đang xác thực giao dịch của bạn.</p>
         </div>
-      ) : (
-        <>
-          {status === "success" && !error && (
-            <div>
-              <h2>Thanh toán thành công!</h2>
-              <p>Số tiền: {amount} VND</p>
-              <button
-                onClick={handleRedirect}
-                className="px-5 py-3 bg-blue-600 text-white rounded-2xl shadow hover:bg-blue-700 font-semibold transition mt-4"
-              >
-                Quay về
-              </button>
-            </div>
-          )}
-          {status === "failure" && (
-            <div>
-              <h2>Thanh toán thất bại!</h2>
-              <button
-                onClick={handleRedirect}
-                className="px-5 py-3 bg-blue-600 text-white rounded-2xl shadow hover:bg-blue-700 font-semibold transition mt-4"
-              >
-                Quay về
-              </button>
-            </div>
-          )}
-          {status === "invalid-signature" && (
-            <div>
-              <h2>Lỗi chữ ký!</h2>
-              <button
-                onClick={handleRedirect}
-                className="px-5 py-3 bg-blue-600 text-white rounded-2xl shadow hover:bg-blue-700 font-semibold transition mt-4"
-              >
-                Quay về
-              </button>
-            </div>
-          )}
-          {error && (
-            <div>
-              <h2>Lỗi: {error}</h2>
-              <button
-                onClick={handleRedirect}
-                className="px-5 py-3 bg-blue-600 text-white rounded-2xl shadow hover:bg-blue-700 font-semibold transition mt-4"
-              >
-                Quay về
-              </button>
-            </div>
-          )}
-        </>
-      )}
+      );
+    }
+
+    const statusMapping = {
+      "success": {
+        icon: <FaCheckCircle className="text-green-500 text-6xl mb-4 animate-scale-in" />,
+        title: "Thanh toán thành công! 🎉",
+        description: `Số tiền đã thanh toán: ${amount} VND`,
+        buttonText: "Quay về trang chủ"
+      },
+      "failure": {
+        icon: <FaTimesCircle className="text-red-500 text-6xl mb-4 animate-shake" />,
+        title: "Thanh toán thất bại! 😔",
+        description: "Đã xảy ra lỗi trong quá trình xử lý giao dịch. Vui lòng thử lại.",
+        buttonText: "Thử lại"
+      },
+      "invalid-signature": {
+        icon: <FaExclamationCircle className="text-yellow-500 text-6xl mb-4 animate-pulse-slow" />,
+        title: "Lỗi chữ ký! ⚠️",
+        description: "Chữ ký giao dịch không hợp lệ. Vui lòng liên hệ hỗ trợ.",
+        buttonText: "Quay về"
+      },
+      "error": {
+        icon: <FaTimesCircle className="text-red-500 text-6xl mb-4 animate-shake" />,
+        title: "Đã xảy ra lỗi!",
+        description: error,
+        buttonText: "Quay về"
+      }
+    };
+
+    const currentStatus = error ? "error" : status;
+    const content = statusMapping[currentStatus];
+
+    if (!content) {
+      return null;
+    }
+
+    return (
+      <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center transform transition-transform duration-500 hover:scale-105">
+        {content.icon}
+        <h2 className="text-3xl font-extrabold text-gray-800 mb-2">{content.title}</h2>
+        <p className="text-gray-600 mb-6">{content.description}</p>
+        {currentStatus === "success" && (
+          <p className="text-lg font-semibold text-green-600 mb-6">Thanh toán hoàn tất. Cảm ơn bạn!</p>
+        )}
+        <button
+          onClick={handleRedirect}
+          className="w-full px-6 py-3 font-semibold text-white bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105"
+        >
+          {content.buttonText}
+        </button>
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100 p-4">
+      {renderContent()}
     </div>
   );
 }

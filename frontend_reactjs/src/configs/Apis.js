@@ -2,7 +2,6 @@ import axios from "axios";
 import cookie from "react-cookies";
 
 export const BASE_URL = 'http://localhost:8080/api/';
-export const API_KEY = 'AIzaSyBzBVojOP6DCMB6hFwWpL8ppVWEo-O3ao4';
 
 
 export const endpoints = {
@@ -28,13 +27,19 @@ export const endpoints = {
 	'book-count': '/book/count',
 	'reader-count': '/reader/count',
 	'borrow-slip-count': '/borrow-slip/count',
-	'borrow-slip-count-monthly':'/borrow-slip/count/monthly',
-	'fine-amount-monthly':'/fine/amount/monthly',
+	'borrow-slip-count-monthly': '/borrow-slip/count/monthly',
+	'fine-amount-monthly': '/fine/amount/monthly',
 	'book-category-count': '/book/category/count',
-	'book-borrow-slip-count':'/book/borrow-slip/count',
+	'book-borrow-slip-count': '/book/borrow-slip/count',
 	'users': "/users",
 	'payment-revenue': '/payment/revenue',
-	'payments': '/payments'
+	'payments': '/payments',
+	'book': (id) => `/book/${id}`,
+	'book-delete': (id) => `/book/delete/${id}`,
+	'book-update': (id) => `/book/update/${id}`,
+	'conservation-by-user': '/conservations/by-user',
+	'borrow-slip-delete': (id) => `/borrow-slip/delete/${id}`,
+	'conversation/user': (id) => `/conversation/user/${id}`
 }
 
 export const authApis = () => {

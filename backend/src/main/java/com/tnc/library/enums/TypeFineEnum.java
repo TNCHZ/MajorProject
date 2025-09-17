@@ -9,7 +9,7 @@ public enum TypeFineEnum {
             return bookPrice;
         }
     },
-    OVERDUE_AND_RESERVED {
+    OVERDUE_AND_RETURNED {
         @Override
         public BigDecimal calculateFineAmount(BigDecimal bookPrice, int duration) {
             return BigDecimal.valueOf(duration* 2000L);

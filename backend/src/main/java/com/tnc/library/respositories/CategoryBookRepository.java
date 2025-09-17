@@ -17,6 +17,7 @@ public interface CategoryBookRepository extends JpaRepository<CategoryBook, Inte
     @Query("SELECT cb.bookId FROM CategoryBook cb WHERE cb.categoryId.id = :categoryId")
     List<Book> findBooksByCategoryId(@Param("categoryId") Integer categoryId);
 
+
     @Query("SELECT cb.categoryId.name, COUNT(cb.bookId) " +
             "FROM CategoryBook cb " +
             "GROUP BY cb.categoryId.name")

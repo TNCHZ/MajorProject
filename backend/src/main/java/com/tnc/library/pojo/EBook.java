@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
@@ -21,13 +22,14 @@ import java.util.Set;
 @Data
 @Entity
 @Table(name = "e_book")
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class EBook implements Serializable {
 
-    private static final long serialVersionUID = 1L;
     @Id
     @Basic(optional = false)
     @NotNull
     @Column(name = "id")
+    @EqualsAndHashCode.Include
     private Integer id;
     @Basic(optional = false)
     @NotNull

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app/pages/setting_page.dart';
+import 'package:mobile_app/pages/chat_page.dart'; // ✅ Import ChatPage
 import 'book_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -10,12 +12,17 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
+  late final List<Widget> _pages;
 
-  final List<Widget> _pages = [
-    const BookPage(),   // Dùng BookPage thật từ book_page.dart
-    const InfoPage(),
-    const SettingsPage(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      const BookPage(),
+      const ChatPage(),
+      const SettingsPage(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,8 +41,8 @@ class _HomePageState extends State<HomePage> {
             label: "Sách",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.info),
-            label: "Thông tin",
+            icon: Icon(Icons.chat),
+            label: "Trò chuyện",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
@@ -44,24 +51,5 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
-  }
-}
-
-// ✅ Giữ lại 2 page phụ
-class InfoPage extends StatelessWidget {
-  const InfoPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text("ℹ️ Trang Thông tin"));
-  }
-}
-
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text("⚙️ Trang Cài đặt"));
   }
 }

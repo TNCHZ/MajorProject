@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { authApis, endpoints } from '../../configs/Apis';
+import { authApis, endpoints } from '../configs/Apis';
 
 // Default language list as a fallback
 const DEFAULT_LANGUAGES = [
@@ -11,7 +11,8 @@ const DEFAULT_LANGUAGES = [
   { code: 'zh-Hans', name: 'Chinese' },
 ];
 
-const ManualBookAdd = ({ onBookAdded, onClose }) => {
+const ManualBookAdd = ({ initialData, onBookAdded, onClose }) => {
+  const isUpdate = !!initialData; // Determine if in update mode
   const [newBook, setNewBook] = useState({
     title: '',
     author: '',
@@ -42,13 +43,42 @@ const ManualBookAdd = ({ onBookAdded, onClose }) => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [categoryToAdd, setCategoryToAdd] = useState('');
 
+  // Initialize form with initialData if provided (for updates)
+  useEffect(() => {
+    if (initialData) {
+      setNewBook({
+        title: initialData.title || '',
+        author: initialData.author || '',
+        publisher: initialData.publisher || '',
+        description: initialData.description || '',
+        language: initialData.language || 'Vietnamese',
+        publishedDate: initialData.publishedDate || new Date().getFullYear(),
+        isbn10: initialData.isbn10 || '',
+        isbn13: initialData.isbn13 || '',
+        price: initialData.price || '',
+        isPrinted: initialData.isPrinted || false,
+        isElectronic: initialData.isElectronic || false,
+        file: null, // File is not fetched, user must re-upload if needed
+        ebookFile: null, // File is not fetched, user must re-upload if needed
+        format: initialData.format || '',
+        licence: initialData.licence || '',
+        shelfLocation: initialData.shelfLocation || '',
+        totalCopy: initialData.totalCopy || ''
+      });
+      setPreviewCover(initialData.image || null); // Set initial image URL as preview
+      setEbookFileName(initialData.filePDF ? initialData.filePDF.split('/').pop() : ''); // Extract filename from filePDF
+      setSelectedCategories(initialData.categories || []); // Pre-populate categories
+    }
+  }, [initialData]);
+
+  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const res = await authApis().get(endpoints['categories']);
         const categories = Array.isArray(res.data) ? res.data : [];
         setAllCategories(categories);
-        if (categories.length > 0) {
+        if (categories.length > 0 && !categoryToAdd) {
           setCategoryToAdd(categories[0].id);
         }
       } catch (error) {
@@ -57,8 +87,9 @@ const ManualBookAdd = ({ onBookAdded, onClose }) => {
       }
     };
     fetchCategories();
-  }, []);
+  }, [categoryToAdd]);
 
+  // Fetch languages
   useEffect(() => {
     const fetchLanguages = async () => {
       setLanguageLoading(true);
@@ -69,8 +100,11 @@ const ManualBookAdd = ({ onBookAdded, onClose }) => {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           setLanguageOptions(data);
-          const viLang = data.find(l => l.code === 'vi');
-          setNewBook(prev => ({ ...prev, language: viLang ? viLang.name : data[0].name }));
+          if (!initialData) {
+            // Only set default language for adding, not updating
+            const viLang = data.find(l => l.code === 'vi');
+            setNewBook(prev => ({ ...prev, language: viLang ? viLang.name : data[0].name }));
+          }
         } else {
           throw new Error('Danh sách ngôn ngữ trống');
         }
@@ -78,13 +112,15 @@ const ManualBookAdd = ({ onBookAdded, onClose }) => {
         console.error('Lỗi khi tải danh sách ngôn ngữ:', error);
         setLanguageError('Không thể tải danh sách ngôn ngữ. Sử dụng danh sách mặc định.');
         setLanguageOptions(DEFAULT_LANGUAGES);
-        setNewBook(prev => ({ ...prev, language: 'Vietnamese' }));
+        if (!initialData) {
+          setNewBook(prev => ({ ...prev, language: 'Vietnamese' }));
+        }
       } finally {
         setLanguageLoading(false);
       }
     };
     fetchLanguages();
-  }, []);
+  }, [initialData]);
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
@@ -92,15 +128,15 @@ const ManualBookAdd = ({ onBookAdded, onClose }) => {
     if (type === 'file') {
       if (name === 'file') {
         setNewBook(prev => ({ ...prev, file: files[0] || null }));
-        setPreviewCover(files[0] ? URL.createObjectURL(files[0]) : null);
+        setPreviewCover(files[0] ? URL.createObjectURL(files[0]) : initialData?.image || null);
       } else if (name === 'ebookFile') {
         setNewBook(prev => ({ ...prev, ebookFile: files[0] || null }));
-        setEbookFileName(files[0] ? files[0].name : '');
+        setEbookFileName(files[0] ? files[0].name : initialData?.filePDF?.split('/').pop() || '');
       }
     } else if (type === 'checkbox') {
       setNewBook(prev => ({ ...prev, [name]: checked }));
     } else if (type === 'number') {
-      setNewBook(prev => ({ ...prev, [name]: value === '' ? '' : parseInt(value) }));
+      setNewBook(prev => ({ ...prev, [name]: value === '' ? '' : parseFloat(value) }));
     } else {
       setNewBook(prev => ({ ...prev, [name]: value }));
     }
@@ -180,15 +216,23 @@ const ManualBookAdd = ({ onBookAdded, onClose }) => {
         formData.append('ebookFile', newBook.ebookFile);
       }
 
-      await authApis().post(endpoints['add-book'], formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      if (isUpdate) {
+        // Update request
+        await authApis().patch(endpoints['book-update'](initialData.id), formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      } else {
+        // Add request
+        await authApis().post(endpoints['add-book'], formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      }
 
       onBookAdded();
       onClose();
     } catch (err) {
-      console.error('Lỗi khi thêm sách:', err);
-      setErrors(prev => ({ ...prev, submit: 'Thêm sách thất bại. Vui lòng thử lại.' }));
+      console.error(`Lỗi khi ${isUpdate ? 'cập nhật' : 'thêm'} sách:`, err);
+      setErrors(prev => ({ ...prev, submit: `${isUpdate ? 'Cập nhật' : 'Thêm'} sách thất bại. Vui lòng thử lại.` }));
     }
   };
 
@@ -491,7 +535,7 @@ const ManualBookAdd = ({ onBookAdded, onClose }) => {
             Hủy
           </button>
           <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700">
-            Thêm sách
+            {isUpdate ? 'Cập nhật sách' : 'Thêm sách'}
           </button>
         </div>
       </form>

@@ -54,6 +54,8 @@ public class TypeMembership implements Serializable {
     @Size(max = 255)
     @Column(name = "description")
     private String description;
+    @Column(name = "can_read_ebook")
+    private Boolean canReadEbook;
     @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "typeId")
     private Set<MembershipRenewal> membershipRenewalSet;

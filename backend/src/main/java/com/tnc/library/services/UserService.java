@@ -10,6 +10,7 @@ import java.util.List;
 public interface UserService extends UserDetailsService{
     User addOrUpdateUser(User u);
     User getUserByUsername(String username);
+    User getUserByEmail(String email);
     User getUserByUserId(int id);
     boolean authenticate(String username, String password);
     void deleteUser(User u);

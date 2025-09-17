@@ -16,7 +16,7 @@ const UserPage = () => {
     email: '',
     phone: '',
     gender: true,
-    role: 'USER', // Default role
+    role: 'USER', 
   });
   const [formError, setFormError] = useState('');
   const [page, setPage] = useState(0);

@@ -9,8 +9,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ChatMessageDTO {
-    private Integer senderId;
     private Integer receiverId;
     private String chatId;
     private String content;
+
+    private String senderType;  // có thể null
 }

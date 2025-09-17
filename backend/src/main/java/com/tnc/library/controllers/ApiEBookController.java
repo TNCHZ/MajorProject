@@ -4,6 +4,7 @@ package com.tnc.library.controllers;
 import com.tnc.library.pojo.EBook;
 import com.tnc.library.pojo.User;
 import com.tnc.library.services.EBookService;
+import com.tnc.library.services.MembershipRenewalService;
 import com.tnc.library.services.UserService;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -30,21 +31,30 @@ public class ApiEBookController {
     @Autowired
     private UserService userSer;
 
+    @Autowired
+    private MembershipRenewalService membershipRenewalService;
 
     @GetMapping("/ebooks/{id}/file")
-    public ResponseEntity<?> downloadEBook(@PathVariable Integer id, Principal principal) {
-        String username = principal.getName();
-        User currentUser = userSer.getUserByUsername(username);
+    public ResponseEntity<?> readEBook(@PathVariable Integer id, Principal principal) {
+//        String username = principal.getName();
+//        User currentUser = userSer.getUserByUsername(username);
+//
+//        if (!currentUser.getReader().isMember()) {
+//            return ResponseEntity
+//                    .status(HttpStatus.FORBIDDEN)
+//                    .body("Bạn chưa gia hạn thành viên");
+//        }
+//
+//        if(!membershipRenewalService.canReaderReadEbook(currentUser.getId()))
+//            return ResponseEntity
+//                    .status(HttpStatus.FORBIDDEN)
+//                    .body("Bạn không thuộc loại thành viên được xem Ebook");
 
-        if (!currentUser.getReader().isMember()) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body("Không phải là thành viên");
-        }
 
-        EBook ebook = eBookService.getBookByEBookId(id);
+
 
         try {
+            EBook ebook = eBookService.getBookByEBookId(id);
             Path path = Paths.get(System.getProperty("user.dir"), ebook.getFileUrl());
             Resource resource = new UrlResource(path.toUri());
 
