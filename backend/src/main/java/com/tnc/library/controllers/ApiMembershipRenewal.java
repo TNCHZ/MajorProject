@@ -54,7 +54,6 @@ public class ApiMembershipRenewal {
             }
             reader.setMember(true);
             Reader reader1 = this.readerService.addOrUpdateReader(reader);
-
             TypeMembership typeMembership = typeMembershipService.findById(membershipDTO.getTypeId());
             if (typeMembership == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy loại thành viên");
@@ -70,17 +69,17 @@ public class ApiMembershipRenewal {
             payment.setTitle(membershipDTO.getTitle());
             payment.setPaymentDate(startDate);
             payment.setAmount(new BigDecimal(membershipDTO.getAmount()));
-            payment.setLibrarianId(currentUser.getLibrarian());
+            payment.setLibrarian(currentUser);
             payment.setMethod("IN_PERSON".equals(membershipDTO.getMethod()) ? PaymentMethod.IN_PERSON : PaymentMethod.ONLINE);
-            payment.setReaderId(reader1);
+            payment.setReader(reader1.getUser());
             payment.setPaid(true);
             Payment payment1 = this.paymentService.addOrUpdatePayment(payment);
 
             MembershipRenewal membershipRenewal = new MembershipRenewal();
             membershipRenewal.setStartDate(startDate);
             membershipRenewal.setExpireDate(expireDate);
-            membershipRenewal.setTypeId(typeMembership);
-            membershipRenewal.setReaderId(reader1);
+            membershipRenewal.setType(typeMembership);
+            membershipRenewal.setReader(reader1.getUser());
             membershipRenewal.setPayment(payment1);
             membershipRenewalService.addOrUpdateMembership(membershipRenewal);
 

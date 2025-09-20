@@ -9,6 +9,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Set;
@@ -17,7 +19,8 @@ import java.util.Set;
  *
  * @author ADMIN
  */
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "reader")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -33,24 +36,9 @@ public class Reader implements Serializable {
     @NotNull
     @Column(name = "is_member")
     private boolean isMember;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "readerId")
-    private Set<ReaderEBook> readerEBookSet;
     @JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
     @OneToOne(optional = false)
     @JsonIgnore
     @MapsId
     private User user;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "readerId")
-    private Set<MembershipRenewal> membershipRenewalSet;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "readerId")
-    private Set<Interact> interactSet;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "readerId")
-    private Set<BorrowSlip> borrowSlipSet;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "readerId")
-    private Set<Fine> fineSet;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "readerId")
-    private Set<Payment> paymentSet;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "readerId")
-    private Set<ReaderEvent> readerEventSet;
-
 }

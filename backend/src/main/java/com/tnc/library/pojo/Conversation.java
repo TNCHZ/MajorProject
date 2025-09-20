@@ -1,6 +1,9 @@
 package com.tnc.library.pojo;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.*;
@@ -10,7 +13,8 @@ import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "conversations")
 public class Conversation implements Serializable {

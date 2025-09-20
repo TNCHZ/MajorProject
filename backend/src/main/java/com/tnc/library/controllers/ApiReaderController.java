@@ -2,6 +2,7 @@ package com.tnc.library.controllers;
 
 import com.tnc.library.pojo.Reader;
 import com.tnc.library.pojo.User;
+import com.tnc.library.services.MailService;
 import com.tnc.library.services.MembershipRenewalService;
 import com.tnc.library.services.ReaderService;
 import com.tnc.library.services.UserService;
@@ -24,6 +25,9 @@ public class ApiReaderController {
     @Autowired
     private ReaderService readerSer;
 
+    @Autowired
+    private MailService mailService;
+
     @PostMapping("/add/reader")
     public ResponseEntity<?> addUser(@ModelAttribute User u) {
         try {
@@ -31,11 +35,19 @@ public class ApiReaderController {
                 return ResponseEntity.badRequest().body("Vai trò không được để trống!");
             }
 
-            // Lưu User
+            if (userSer.getUserByEmail(u.getEmail()) != null)
+                return ResponseEntity.badRequest().body("Email đã tồn tại");
+
+            if(userSer.getUserByPhone(u.getPhone())!= null)
+                return ResponseEntity.badRequest().body("Số điện thoại đã tồn tại");
+
+
+
             User userSaved = this.userSer.addOrUpdateUser(u);
             Reader r = new Reader();
             r.setMember(Boolean.FALSE);
             r.setUser(userSaved);
+            mailService.sendMail(u.getEmail(),"Tài khoản của bạn là", "Tài khoản là: " + u.getPhone() + "\nMật khẩu là: " + u.getPhone());
             this.readerSer.addOrUpdateReader(r);
 
             return ResponseEntity.ok(userSaved);

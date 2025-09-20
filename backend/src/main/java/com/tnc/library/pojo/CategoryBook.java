@@ -16,6 +16,8 @@ import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 
@@ -23,7 +25,8 @@ import java.io.Serializable;
  *
  * @author ADMIN
  */
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "category_book")
 public class CategoryBook implements Serializable {

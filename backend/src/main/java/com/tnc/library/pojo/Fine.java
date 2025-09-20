@@ -1,63 +1,84 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.tnc.library.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
-/**
- *
- * @author ADMIN
- */
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "fine")
 public class Fine implements Serializable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "id")
     private Integer id;
-    @Basic(optional = false)
-    @NotNull
+
     @Lob
+    @NotNull
     @Size(min = 1, max = 65535)
-    @Column(name = "reason")
+    @Column(name = "reason", nullable = false)
     private String reason;
-    @Basic(optional = false)
+
     @NotNull
-    @Column(name = "issued_at")
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "issued_at", nullable = false)
     private Date issuedAt;
-    @Basic(optional = false)
+
     @NotNull
-    @Column(name = "is_paid")
-    private boolean isPaid;
-    @Basic(optional = false)
+    @Column(name = "is_paid", nullable = false)
+    private boolean isPaid = false;
+
     @NotNull
-    @Column(name = "amount")
+    @Column(name = "amount", nullable = false)
     private BigDecimal amount;
-    @JoinColumn(name = "reader_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Reader readerId;
-    @OneToOne
+
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "reader_id", nullable = false)
+    @JsonIgnore
+    private User reader;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "librarian_id")
+    @JsonIgnore
+    private User librarian;
+
+    @OneToOne(optional = false, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "borrow_slip_id", nullable = false, unique = true)
+    @JsonIgnore
     private BorrowSlip borrowSlip;
-    @OneToOne
-    @JoinColumn(name = "payment_id", nullable = true, unique = true)
+
+    @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JoinColumn(name = "payment_id", unique = true)
+    @JsonIgnore
     private Payment payment;
-    @JoinColumn(name = "librarian_id", referencedColumnName = "id")
+
     @ManyToOne(optional = false)
-    private Librarian librarianId;
-    @JoinColumn(name = "type_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private TypeFine typeId;
+    @JoinColumn(name = "type_id", referencedColumnName = "id", nullable = false)
+    @JsonIgnore
+    private TypeFine typeFine;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Fine)) return false;
+        Fine that = (Fine) o;
+        return id != null && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
 }

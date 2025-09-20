@@ -7,7 +7,6 @@ import { authApis, endpoints } from "./configs/Apis";
 import { MyUserContext, MyDispatchContext } from "./configs/Context";
 import myUserReducer from "./reducer/MyUserReducer";
 import LoginPage from "./pages/LoginPage";
-import SettingsPage from "./pages/SettingPage";
 import DashboardPage from "./pages/DashboardPage";
 import BookPage from "./pages/BookPage";
 import LogoutPage from "./pages/LogoutPage";
@@ -108,10 +107,6 @@ const App = () => {
                          <Route
                           path="chat"
                           element={<ProtectedRoute element={<ChatPage />} allowedRoles={['LIBRARIAN']} />}
-                        />
-                        <Route
-                          path="settings"
-                          element={<ProtectedRoute element={<SettingsPage />} allowedRoles={['ADMIN']} />}
                         />
                         <Route
                           path="logout"

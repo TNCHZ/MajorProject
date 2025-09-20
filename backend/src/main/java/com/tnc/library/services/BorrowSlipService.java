@@ -4,6 +4,7 @@ import com.tnc.library.dto.MonthlyBorrowingDTO;
 import com.tnc.library.enums.BorrowStatus;
 import com.tnc.library.pojo.BorrowSlip;
 import com.tnc.library.pojo.Reader;
+import com.tnc.library.pojo.User;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.List;
 public interface BorrowSlipService {
     BorrowSlip addOrUpdateBorrowSlip(BorrowSlip b);
 
-    Page<BorrowSlip> getBorrowSlipsByReader(Reader reader, int page, int size);
+    Page<BorrowSlip> getBorrowSlipsByReader(User reader, int page, int size);
 
     BorrowSlip getBorrowSlipById(int id);
 
@@ -21,7 +22,9 @@ public interface BorrowSlipService {
 
     Integer countByStatus(BorrowStatus borrowStatus);
 
-    public Page<BorrowSlip> getBorrowSlips(int page, int size, String sortBy);
+    Page<BorrowSlip> getBorrowSlips(int page, int size, String sortBy);
 
     List<BorrowSlip> getBorrowingSlipsByBookId(Integer bookId, BorrowStatus borrowStatus);
+
+    List<BorrowSlip> findByStatusAndReader_Id(BorrowStatus borrowStatus, Integer id);
 }

@@ -13,6 +13,7 @@ export const endpoints = {
 	'categories': '/categories',
 	'readers': '/readers',
 	'borrow-slips': '/borrow-slips',
+	'borrow-slips-reader': '/borrow-slips/reader',
 	'add-borrow-slip': '/add/borrow-slip',
 	'find-reader-by-phone': '/reader/find-by-phone',
 	'find-book-by-isbn': '/book/find-by-isbn',
@@ -39,7 +40,11 @@ export const endpoints = {
 	'book-update': (id) => `/book/update/${id}`,
 	'conservation-by-user': '/conservations/by-user',
 	'borrow-slip-delete': (id) => `/borrow-slip/delete/${id}`,
-	'conversation/user': (id) => `/conversation/user/${id}`
+	'conversation-user': (id) => `/conversation/user/${id}`,
+	'fines-by-phone':  '/fines/by-phone',
+	'fine-delete':  (id) => `/fine/delete/${id}`,
+	'add-user': '/add/user',
+	'user-update': (id) => `/user/update/${id}`,
 }
 
 export const authApis = () => {

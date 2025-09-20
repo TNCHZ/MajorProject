@@ -10,6 +10,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
@@ -19,7 +21,8 @@ import java.util.Set;
  *
  * @author ADMIN
  */
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "e_book")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -50,8 +53,6 @@ public class EBook implements Serializable {
     @NotNull
     @Column(name = "total_view")
     private int totalView;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "eBookId")
-    private Set<ReaderEBook> readerEBookSet;
     @JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
     @OneToOne(optional = false)
     @MapsId

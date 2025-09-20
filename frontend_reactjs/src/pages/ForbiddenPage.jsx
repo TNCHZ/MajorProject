@@ -8,7 +8,7 @@ const ForbiddenPage = () => {
         <h1 className="text-3xl font-bold text-red-600 mb-4">403 - Truy cập bị từ chối</h1>
         <p className="text-gray-700 mb-4">Bạn không có quyền truy cập trang này.</p>
         <Link
-          to="/main/dashboard"
+          to="/main"
           className="px-5 py-3 bg-blue-600 text-white rounded-2xl shadow hover:bg-blue-700 font-semibold transition"
         >
           Quay lại Trang chính

@@ -32,9 +32,11 @@ public class PrintedBookBorrowSlip implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Integer id;
-    @JoinColumn(name = "borrow_slip_id", referencedColumnName = "id")
+
     @ManyToOne(optional = false)
-    private BorrowSlip borrowSlipId;
+    @JoinColumn(name = "borrow_slip_id", referencedColumnName = "id")
+    private BorrowSlip borrowSlip;
+
     @JoinColumn(name = "printed_book_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private PrintedBook printedBookId;

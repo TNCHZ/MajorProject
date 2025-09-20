@@ -8,7 +8,7 @@ import java.util.List;
 public interface BookService {
     Book addOrUpdateBook(Book b);
 
-    Book findByIsbn(String isbn);
+    List<Book> findByIsbn(String isbn);
 
     Book getBookByNameAuthorPublishedDate(String title, String author, int publishedDate);
 

@@ -154,7 +154,7 @@ public class ApiUserController {
         String otp = String.valueOf(new Random().nextInt(900000) + 100000);
 
         otpService.saveOtp(email, otp);
-        mailService.sendOtp(email, otp);
+        mailService.sendMail(email,"Mã OTP xác thực", "Mã OTP của bạn là: " + otp + "\nMã này sẽ hết hạn sau 5 phút.");
 
         return ResponseEntity.ok("OTP đã gửi qua email");
     }
@@ -228,13 +228,17 @@ public class ApiUserController {
         }
     }
 
-
-
-    @PatchMapping("/user/update")
-    public ResponseEntity<?> updateUser(@ModelAttribute User u, Principal principal) {
+    @PatchMapping("/user/update/{id}")
+    public ResponseEntity<?> updateUserByAdminOrLibrarian(@PathVariable Integer id, @ModelAttribute User u, Principal principal) {
         try {
             String username = principal.getName();
-            User user = this.userSer.getUserByUsername(username);
+            User currentUser = this.userSer.getUserByUsername(username);
+
+            if (!currentUser.getRole().equals("ADMIN") && !currentUser.getRole().equals("LIBRARIAN")) {
+                return ResponseEntity.badRequest().body("Người dùng không hợp lệ");
+            }
+
+            User user = this.userSer.getUserByUserId(id);
             if (user == null) {
                 return ResponseEntity.status(404).body("Không tìm thấy user");
             }
@@ -265,4 +269,60 @@ public class ApiUserController {
         }
     }
 
+
+    @PatchMapping("/user/update")
+    public ResponseEntity<?> updateUser(@ModelAttribute User u, Principal principal) {
+        try {
+            String username = principal.getName();
+            User user = this.userSer.getUserByUsername(username);
+
+            if (user == null) {
+                return ResponseEntity.status(404).body("Không tìm thấy user");
+            }
+
+            if (u.getFirstName() != null && !u.getFirstName().isBlank()) {
+                user.setFirstName(u.getFirstName());
+            }
+            if (u.getLastName() != null && !u.getLastName().isBlank()) {
+                user.setLastName(u.getLastName());
+            }
+            if (u.getEmail() != null && !u.getEmail().isBlank()) {
+                user.setEmail(u.getEmail());
+            }
+            if (u.getPhone() != null && !u.getPhone().isBlank()) {
+                user.setPhone(u.getPhone());
+            }
+            if (u.getFile() != null && !u.getFile().isEmpty()) {
+                user.setFile(u.getFile());
+            }
+            user.setGender(u.isGender());
+
+
+            this.userSer.addOrUpdateUser(user);
+
+            return ResponseEntity.ok("Cập nhật thông tin thành công");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @DeleteMapping("/user/delete/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Integer id, Principal principal){
+        try {
+            String username = principal.getName();
+            User currentUser = this.userSer.getUserByUsername(username);
+
+            if (!currentUser.getRole().equals("ADMIN")) {
+                return ResponseEntity.badRequest().body("Người dùng không hợp lệ");
+            }
+
+            User user = this.userSer.getUserByUserId(id);
+            this.userSer.deleteUser(user);
+            return ResponseEntity.ok("Xóa thành công");
+
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

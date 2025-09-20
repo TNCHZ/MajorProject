@@ -14,6 +14,10 @@ import java.util.List;
 @Repository
 public interface FineRepository extends JpaRepository<Fine, Integer> {
     Page<Fine> findAll(Pageable pageable);
+
+    Page<Fine> findByReader_Phone(String phone, Pageable pageable);
+
+
     @Query("SELECT FUNCTION('MONTH', f.issuedAt) as month, SUM(f.amount) as total " +
             "FROM Fine f " +
             "WHERE FUNCTION('YEAR', f.issuedAt) = :year " +

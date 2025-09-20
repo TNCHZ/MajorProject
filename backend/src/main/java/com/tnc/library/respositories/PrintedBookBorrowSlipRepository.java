@@ -11,7 +11,7 @@ import java.util.List;
 
 @Repository
 public interface PrintedBookBorrowSlipRepository extends JpaRepository<PrintedBookBorrowSlip, Integer> {
-    List<PrintedBookBorrowSlip> findByBorrowSlipId(BorrowSlip borrowSlip);
+    List<PrintedBookBorrowSlip> findByBorrowSlip(BorrowSlip borrowSlip);
 
     @Query("SELECT pbbs.printedBookId.book.title, pbbs.printedBookId.book.author, COUNT(pbbs) " +
             "FROM PrintedBookBorrowSlip pbbs " +

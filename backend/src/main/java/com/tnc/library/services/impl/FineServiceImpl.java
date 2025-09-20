@@ -42,6 +42,12 @@ public class FineServiceImpl implements FineService {
     }
 
     @Override
+    public Page<Fine> getFineByReaderPhone(String phone, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        return fineRepository.findByReader_Phone(phone, pageable);
+    }
+
+    @Override
     public List<MonthlyFineDTO> getMonthlyFines(int year) {
         List<Object[]> raw = this.fineRepository.getMonthlyRevenue(year);
         List<MonthlyFineDTO> result = new ArrayList<>();
@@ -55,6 +61,12 @@ public class FineServiceImpl implements FineService {
         }
 
         return result;
+    }
+
+    @Transactional
+    @Override
+    public void deleteFine(Fine fine) {
+        this.fineRepository.delete(fine);
     }
 
 }

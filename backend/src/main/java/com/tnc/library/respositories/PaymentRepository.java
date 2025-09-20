@@ -29,5 +29,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
         GROUP BY type
     """)
     List<Object[]> getRevenueByType(@Param("year") int year, @Param("month") Integer month);
+
     Page<Payment> findAll(Pageable pageable);
 }

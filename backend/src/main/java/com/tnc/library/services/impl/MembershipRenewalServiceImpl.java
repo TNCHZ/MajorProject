@@ -7,6 +7,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 
 @Service
 public class MembershipRenewalServiceImpl implements MembershipRenewalService {
@@ -22,6 +24,11 @@ public class MembershipRenewalServiceImpl implements MembershipRenewalService {
     @Override
     public boolean canReaderReadEbook(Integer id) {
         return membershipRenewalRepository.canReaderReadEbook(id);
+    }
+
+    @Override
+    public List<MembershipRenewal> getMembershipsExpired() {
+        return this.membershipRenewalRepository.findAllValidUnnotifiedRenewals();
     }
 
 }

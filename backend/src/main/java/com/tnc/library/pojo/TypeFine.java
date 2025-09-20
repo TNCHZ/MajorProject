@@ -3,11 +3,14 @@ package com.tnc.library.pojo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "type_fine")
 public class TypeFine implements Serializable {
@@ -28,6 +31,6 @@ public class TypeFine implements Serializable {
     private String description;
 
     @JsonIgnore
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "typeId")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "typeFine")
     private Set<Fine> fineSet;
 }

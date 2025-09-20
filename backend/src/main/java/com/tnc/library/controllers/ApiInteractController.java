@@ -39,10 +39,10 @@ public class ApiInteractController {
             User currentUser = userService.getUserByUsername(username);
 
             Interact interact = new Interact();
-            interact.setBookId(this.bookService.getBookByBookId(interactDTO.getBookId()));
+            interact.setBook(this.bookService.getBookByBookId(interactDTO.getBookId()));
             interact.setComment(interactDTO.getComment());
             interact.setReact(interactDTO.getReact());
-            interact.setReaderId(currentUser.getReader());
+            interact.setReader(currentUser);
             this.interactService.addOrUpdateInteract(interact);
 
 
@@ -68,8 +68,8 @@ public class ApiInteractController {
                 dto.setId(interact.getId());
                 dto.setReact(interact.getReact());
                 dto.setComment(interact.getComment());
-                dto.setName(interact.getReaderId().getUser().getFullName());
-                dto.setAvatar(interact.getReaderId().getUser().getAvatar());
+                dto.setName(interact.getReader().getFullName());
+                dto.setAvatar(interact.getReader().getAvatar());
                 return dto;
             });
 

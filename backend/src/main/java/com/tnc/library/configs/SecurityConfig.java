@@ -82,6 +82,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/book/delete/{id}").hasRole("ADMIN")
                         .requestMatchers("/api/borrow-slip/delete/{id}").hasAnyRole("ADMIN", "LIBRARIAN")
                         .requestMatchers("/api/borrow-slip/add/by-reader").hasRole("READER")
+                        .requestMatchers("/api/borrow-slips/reader").hasAnyRole("ADMIN", "LIBRARIAN")
+                        .requestMatchers("/api/fines/by-phone").hasAnyRole("ADMIN", "LIBRARIAN")
+                        .requestMatchers("/api/fine/delete/{id}").hasRole("ADMIN")
+                        .requestMatchers("/api/add/user").hasRole("ADMIN")
+                        .requestMatchers("/api/user/update/{id}").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);

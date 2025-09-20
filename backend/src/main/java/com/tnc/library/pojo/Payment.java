@@ -1,64 +1,68 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.tnc.library.pojo;
 
 import com.tnc.library.enums.PaymentMethod;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
+import lombok.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.Set;
 
-/**
- *
- * @author ADMIN
- */
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "payment")
 public class Payment implements Serializable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "id")
     private Integer id;
-    @Basic(optional = false)
+
     @NotNull
     @Size(min = 1, max = 255)
-    @Column(name = "title")
+    @Column(name = "title", nullable = false)
     private String title;
-    @Basic(optional = false)
+
     @NotNull
-    @Column(name = "payment_date")
+    @Column(name = "payment_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date paymentDate;
-    @Basic(optional = false)
+
     @NotNull
-    @Column(name = "amount")
+    @Column(name = "amount", nullable = false)
     private BigDecimal amount;
-    @Basic(optional = false)
+
     @NotNull
-    @Column(name = "is_paid")
+    @Column(name = "is_paid", nullable = false)
     private boolean isPaid;
-    @Basic(optional = false)
+
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "method")
+    @Column(name = "method", nullable = false)
     private PaymentMethod method;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "payment")
-    private MembershipRenewal membershipRenewal;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "payment")
-    private Fine fine;
+
+    // Reader thực hiện payment
+    @ManyToOne(optional = false)
     @JoinColumn(name = "reader_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Reader readerId;
+    private User reader;
+
+    // Librarian xử lý payment
+    @ManyToOne(optional = true)
     @JoinColumn(name = "librarian_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Librarian librarianId;
+    private User librarian;
+
+    // Một payment có thể gắn với membership renewal
+    @OneToOne(mappedBy = "payment", cascade = CascadeType.ALL)
+    private MembershipRenewal membershipRenewal;
+
+    // Một payment có thể gắn với fine
+    @OneToOne(mappedBy = "payment", cascade = CascadeType.ALL)
+    private Fine fine;
 }

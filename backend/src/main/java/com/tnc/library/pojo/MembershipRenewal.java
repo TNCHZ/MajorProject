@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.tnc.library.pojo;
 
 import jakarta.persistence.*;
@@ -12,40 +8,41 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.io.Serializable;
 import java.util.Date;
 
-/**
- *
- * @author ADMIN
- */
 @Data
 @Entity
 @Table(name = "membership_renewal")
 public class MembershipRenewal implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "id")
     private Integer id;
-    @Basic(optional = false)
+
     @NotNull
     @Column(name = "start_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date startDate;
-    @Basic(optional = false)
+
     @NotNull
     @Column(name = "expire_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date expireDate;
-    @Column(name = "created_at")
+
+    @Column(name = "created_at", updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
     private Date createdAt;
+
+    @Column(name = "is_notify", nullable = false)
+    private Boolean isNotify = false;
+
+    @ManyToOne(optional = false)
     @JoinColumn(name = "reader_id", referencedColumnName = "id")
+    private User reader;
+
     @ManyToOne(optional = false)
-    private Reader readerId;
     @JoinColumn(name = "type_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private TypeMembership typeId;
+    private TypeMembership type;
+
     @OneToOne
-    @JoinColumn(name = "payment_id", nullable = true, unique = true)
+    @JoinColumn(name = "payment_id", unique = true)
     private Payment payment;
 }

@@ -10,6 +10,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Set;
@@ -18,7 +20,8 @@ import java.util.Set;
  *
  * @author ADMIN
  */
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "printed_book")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)

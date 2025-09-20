@@ -83,7 +83,7 @@ public class ApiBookController {
             b.setPrice(new BigDecimal(dto.getPrice()));
             b.setPrinted(Boolean.parseBoolean(dto.getIsPrinted()));
             b.setElectronic(Boolean.parseBoolean(dto.getIsElectronic()));
-            b.setLibrarianId(currentUser.getLibrarian());
+            b.setLibrarian(currentUser);
 
             if (file != null && !file.isEmpty()) {
                 b.setFile(file);
@@ -293,21 +293,26 @@ public class ApiBookController {
 
     @GetMapping("/book/find-by-isbn")
     public ResponseEntity<?> searchBookByISBN(@RequestParam String isbn) {
-        Book book = bookService.findByIsbn(isbn);
+        List<Book> books = bookService.findByIsbn(isbn);
 
-        if (book == null) {
+        if (books.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        Map<String, Object> bookMap = new HashMap<>();
-        bookMap.put("id", book.getId());
-        bookMap.put("title", book.getTitle());
-        bookMap.put("author", book.getAuthor());
-        bookMap.put("publishedDate", book.getPublishedDate());
-        bookMap.put("image", book.getImage());
+        List<Map<String, Object>> bookList = new ArrayList<>();
+        for (Book book : books) {
+            Map<String, Object> bookMap = new HashMap<>();
+            bookMap.put("id", book.getId());
+            bookMap.put("title", book.getTitle());
+            bookMap.put("author", book.getAuthor());
+            bookMap.put("publishedDate", book.getPublishedDate());
+            bookMap.put("image", book.getImage());
+            bookList.add(bookMap);
+        }
 
-        return ResponseEntity.ok(bookMap);
+        return ResponseEntity.ok(bookList);
     }
+
 
     @GetMapping("/book/find-by-title")
     public ResponseEntity<?> searchBookByTitle(@RequestParam String title) {

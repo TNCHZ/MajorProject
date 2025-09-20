@@ -9,6 +9,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -18,7 +20,8 @@ import java.util.Set;
  *
  * @author ADMIN
  */
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "librarian")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -34,13 +37,9 @@ public class Librarian implements Serializable {
     @Column(name = "start_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date startDate;
-    @OneToMany(mappedBy = "librarianId")
-    private Set<Book> bookSet;
     @JoinColumn(name = "id", referencedColumnName = "id", insertable = false, updatable = false)
     @OneToOne(optional = false)
     @JsonIgnore
     @MapsId
     private User user;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "librarianId")
-    private Set<Fine> fineSet;
 }

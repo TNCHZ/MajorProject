@@ -166,7 +166,7 @@ public class ApiPaymentController {
                 .map(p -> {
                     Map<String, Object> paymentMap = new HashMap<>();
                     paymentMap.put("id", p.getId());
-                    paymentMap.put("user", p.getReaderId().getUser().getFullName());
+                    paymentMap.put("user", p.getReader().getFullName());
                     if (p.getFine() != null) {
                         paymentMap.put("type", "fine");
                     } else {

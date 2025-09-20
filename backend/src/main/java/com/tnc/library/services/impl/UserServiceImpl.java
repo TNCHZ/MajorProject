@@ -79,6 +79,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User getUserByPhone(String phone) {
+        Optional<User> user = this.userRepository.findByPhone(phone);
+        return user.orElse(null);
+    }
+
+    @Override
     public boolean authenticate(String username, String password) {
         Optional<User> u = this.userRepository.findByUsername(username);
         if (u.isPresent()) {

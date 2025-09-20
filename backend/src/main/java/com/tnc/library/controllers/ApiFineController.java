@@ -61,10 +61,10 @@ public class ApiFineController {
 
 
             Payment payment = new Payment();
-            payment.setLibrarianId(fine.getLibrarianId());
+            payment.setLibrarian(fine.getLibrarian());
             payment.setPaid(true);
             payment.setAmount(fine.getAmount());
-            payment.setReaderId(fine.getReaderId());
+            payment.setReader(fine.getReader());
             payment.setPaymentDate(new Date());
             payment.setTitle(fine.getReason());
             payment.setMethod("IN_PERSON".equals(method) ? PaymentMethod.IN_PERSON : PaymentMethod.ONLINE);
@@ -86,7 +86,7 @@ public class ApiFineController {
 
 
     @GetMapping("/fines")
-    public Page<Map<String, Object>> getBooks(
+    public Page<Map<String, Object>> getFines(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "id") String sortBy
@@ -99,15 +99,58 @@ public class ApiFineController {
                     fineMap.put("issuedAt", f.getIssuedAt());
                     fineMap.put("amount", f.getAmount());
                     fineMap.put("isPaid", f.isPaid());
-                    fineMap.put("readerId", f.getReaderId().getId());
-                    fineMap.put("readerName", f.getReaderId().getUser().getFullName());
+                    fineMap.put("readerId", f.getReader().getId());
+                    fineMap.put("readerName", f.getReader().getFullName());
+                    fineMap.put("readerPhone", f.getReader().getPhone());
                     fineMap.put("borrowSlipId", f.getBorrowSlip().getId());
                     return fineMap;
                 });
     }
 
+    @GetMapping("/fines/by-phone")
+    public Page<Map<String, Object>> getFinesByPhone(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(required = false) String phone
+    ) {
+        return this.fineService.getFineByReaderPhone(phone, page, size)
+                .map(f -> {
+                    Map<String, Object> fineMap = new HashMap<>();
+                    fineMap.put("id", f.getId());
+                    fineMap.put("reason", f.getReason());
+                    fineMap.put("issuedAt", f.getIssuedAt());
+                    fineMap.put("amount", f.getAmount());
+                    fineMap.put("isPaid", f.isPaid());
+                    fineMap.put("readerId", f.getReader().getId());
+                    fineMap.put("readerName", f.getReader().getFullName());
+                    fineMap.put("readerPhone", f.getReader().getPhone());
+                    fineMap.put("borrowSlipId", f.getBorrowSlip().getId());
+                    return fineMap;
+                });
+    }
+
+
+
     @GetMapping("/fine/amount/monthly")
     public ResponseEntity<List<MonthlyFineDTO>> getMonthlyBorrowings(@RequestParam int year) {
         return ResponseEntity.ok(fineService.getMonthlyFines(year));
+    }
+
+    @DeleteMapping("/fine/delete/{id}")
+    public ResponseEntity<?> deleteFine(@PathVariable Integer id, Principal principal){
+        try{
+            String username = principal.getName();
+            User user = this.userService.getUserByUsername(username);
+
+            if(!user.getRole().equals("ADMIN"))
+                return ResponseEntity.badRequest().body("Người dùng không hợp lệ");
+
+            Fine fine = this.fineService.getFineById(id);
+            this.fineService.deleteFine(fine);
+            return ResponseEntity.ok("Xóa thành công");
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

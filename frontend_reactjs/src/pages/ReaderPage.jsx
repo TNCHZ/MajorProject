@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { authApis, endpoints } from '../configs/Apis';
-import { PlusIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon } from '@heroicons/react/24/outline';
 import useOnlinePayment from '../hook/UseOnlinePayment';
 
 const ReaderPage = () => {
   const [readers, setReaders] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [selectedReader, setSelectedReader] = useState(null);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -16,7 +18,6 @@ const ReaderPage = () => {
     file: null,
     role: 'READER',
     active: true,
-    username: '',
     password: '',
   });
   const [formErrors, setFormErrors] = useState({});
@@ -63,9 +64,10 @@ const ReaderPage = () => {
       setTotalPages(res.data.totalPages || 0);
     } catch (err) {
       console.error('Lỗi khi lấy độc giả từ API:', err);
+      setSearchError('Lỗi khi lấy danh sách độc giả. Vui lòng thử lại.');
     }
     setLoading(false);
-  }, [currentPage, pageSize]);  // dependencies
+  }, [currentPage, pageSize]);
 
   const fetchMembershipTypes = useCallback(async () => {
     try {
@@ -137,7 +139,7 @@ const ReaderPage = () => {
       alert('Gia hạn thành viên thành công!');
     } catch (err) {
       console.error('Lỗi khi gia hạn thành viên trực tiếp:', err);
-      alert('Gia hạn thất bại. Vui lòng thử lại.');
+      alert(`Gia hạn thất bại: ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -174,10 +176,11 @@ const ReaderPage = () => {
       if (res.data && res.data.id) {
         setSearchResult(res.data);
       } else {
-        setSearchError('Không tìm thấy thành viên với số điện thoại này!');
+        setSearchError('Không tìm thấy độc giả với số điện thoại này!');
       }
-    } catch {
-      setSearchError('Không tìm thấy thành viên với số điện thoại này!');
+    } catch (err) {
+      console.error('Lỗi khi tìm kiếm độc giả:', err);
+      setSearchError('Không tìm thấy độc giả với số điện thoại này!');
     }
   };
 
@@ -197,43 +200,6 @@ const ReaderPage = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validate()) return;
-
-    setLoading(true);
-    try {
-      const formDataToSend = new FormData();
-      Object.keys(formData).forEach((key) => {
-        if (key !== 'file') {
-          formDataToSend.append(key, formData[key]);
-        }
-      });
-      if (formData.file) {
-        formDataToSend.append('file', formData.file);
-      }
-
-      const res = await authApis().post(endpoints['add-reader'], formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      if (res.status === 200) {
-        setShowModal(false);
-        resetForm();
-        fetchReaders();
-        alert('Đăng ký độc giả thành công!');
-      }
-    } catch (err) {
-      setFormErrors((prev) => ({
-        ...prev,
-        submit: 'Đăng ký thất bại. Vui lòng thử lại.',
-      }));
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const validate = () => {
     let tempErrors = {};
     if (!formData.firstName.trim()) tempErrors.firstName = 'Họ không được để trống';
@@ -244,12 +210,114 @@ const ReaderPage = () => {
     if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)) {
       tempErrors.email = 'Email không hợp lệ';
     }
-    if (!formData.username.trim()) tempErrors.username = 'Tên đăng nhập không được để trống';
-    if (!formData.password) tempErrors.password = 'Mật khẩu không được để trống';
-    if (formData.password.length < 6) tempErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
+    if (showUpdateModal && formData.password && formData.password.length < 6) {
+      tempErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
+    }
+    if (!showUpdateModal && !formData.password) tempErrors.password = 'Mật khẩu không được để trống';
+    if (!showUpdateModal && formData.password.length < 6) tempErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
 
     setFormErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
+  };
+
+  const handleAddReader = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    setLoading(true);
+    try {
+      const formDataToSend = new FormData();
+      const dataToSend = {
+        ...formData,
+        username: formData.phone,
+        password: formData.phone,
+      };
+      Object.keys(dataToSend).forEach((key) => {
+        if (key !== 'file') {
+          formDataToSend.append(key, dataToSend[key]);
+        }
+      });
+      if (formData.file) {
+        formDataToSend.append('file', formData.file);
+      }
+
+      const res = await authApis().post(endpoints['add-reader'], formDataToSend, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      if (res.status === 200) {
+        setShowAddModal(false);
+        resetForm();
+        setCurrentPage(0);
+        fetchReaders();
+        alert('Đăng ký độc giả thành công!');
+      }
+    } catch (err) {
+      console.error('Lỗi khi thêm độc giả:', err);
+      setFormErrors((prev) => ({
+        ...prev,
+        submit: `Đăng ký thất bại: ${err.response?.data?.message || err.message}`,
+      }));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateReader = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    setLoading(true);
+    try {
+      const formDataToSend = new FormData();
+      const dataToSend = {
+        ...formData,
+        username: formData.phone,
+        password: formData.password || undefined, // Only include password if provided
+      };
+      Object.keys(dataToSend).forEach((key) => {
+        if (key !== 'file' && dataToSend[key] !== undefined) {
+          formDataToSend.append(key, dataToSend[key]);
+        }
+      });
+      if (formData.file) {
+        formDataToSend.append('file', formData.file);
+      }
+
+      const res = await authApis().patch(endpoints['user-update'](selectedReader.id), formDataToSend, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      if (res.status === 200) {
+        setShowUpdateModal(false);
+        resetForm();
+        fetchReaders();
+        alert('Cập nhật độc giả thành công!');
+      }
+    } catch (err) {
+      console.error('Lỗi khi cập nhật độc giả:', err);
+      setFormErrors((prev) => ({
+        ...prev,
+        submit: `Cập nhật thất bại: ${err.response?.data?.message || err.message}`,
+      }));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openUpdateModal = (reader) => {
+    setSelectedReader(reader);
+    setFormData({
+      firstName: reader.firstName || reader.name?.split(' ').slice(0, -1).join(' ') || '',
+      lastName: reader.lastName || reader.name?.split(' ').pop() || '',
+      phone: reader.phone || '',
+      email: reader.email || '',
+      gender: reader.gender !== undefined ? reader.gender : false,
+      file: null,
+      role: reader.role || 'READER',
+      active: reader.active !== undefined ? reader.active : true,
+      password: '',
+    });
+    setPreview(reader.avatar || null);
+    setShowUpdateModal(true);
   };
 
   const resetForm = () => {
@@ -262,11 +330,13 @@ const ReaderPage = () => {
       file: null,
       role: 'READER',
       active: true,
-      username: '',
       password: '',
     });
     setPreview(null);
     setFormErrors({});
+    setShowAddModal(false);
+    setShowUpdateModal(false);
+    setSelectedReader(null);
   };
 
   return (
@@ -277,14 +347,15 @@ const ReaderPage = () => {
             type="text"
             value={searchPhone}
             onChange={(e) => setSearchPhone(e.target.value)}
-            placeholder="Nhập số điện thoại"
-            className="p-3 border border-gray-300 rounded-2xl shadow focus:ring-2 focus:ring-blue-400 transition"
-            style={{ minWidth: 950 }}
+            placeholder="Nhập số điện thoại (10 số)"
+            className="p-3 border border-gray-300 rounded-2xl shadow focus:ring-2 focus:ring-blue-400 transition w-full"
+            aria-label="Tìm kiếm độc giả theo số điện thoại"
           />
           <button
             type="button"
             onClick={handleSearch}
             className="px-5 py-3 bg-blue-600 text-white rounded-2xl shadow hover:bg-blue-700 font-semibold transition"
+            aria-label="Tìm kiếm"
           >
             Tìm kiếm
           </button>
@@ -297,38 +368,42 @@ const ReaderPage = () => {
                 setSearchError('');
               }}
               className="px-5 py-3 bg-gray-200 text-gray-700 rounded-2xl shadow hover:bg-gray-300 font-semibold transition"
+              aria-label="Hủy tìm kiếm"
             >
               Hủy tìm kiếm
             </button>
           )}
         </div>
         <button
-          onClick={() => setShowModal(true)}
-          className="inline-flex items-center px-5 py-3 bg-blue-600 text-white rounded-2xl shadow hover:bg-blue-700 font-semibold transition ml-auto"
+          onClick={() => setShowAddModal(true)}
+          className="inline-flex items-center px-5 py-3 bg-blue-600 text-white rounded-2xl shadow hover:bg-blue-700 font-semibold transition"
+          aria-label="Thêm độc giả mới"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
           Thêm độc giả mới
         </button>
       </div>
 
-      {searchError && <div className="text-red-500 mb-4">{searchError}</div>}
+      {searchError && (
+        <div className="text-red-500 mb-4" role="alert">
+          {searchError}
+        </div>
+      )}
 
-      {showModal && (
+      {(showAddModal || showUpdateModal) && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-6 border w-[500px] shadow-xl rounded-3xl bg-white">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-gray-900">Thêm độc giả mới</h3>
+              <h3 className="text-xl font-bold text-gray-900">{showAddModal ? 'Thêm độc giả mới' : 'Cập nhật độc giả'}</h3>
               <button
-                onClick={() => {
-                  setShowModal(false);
-                  resetForm();
-                }}
+                onClick={resetForm}
                 className="text-gray-400 hover:text-gray-500 transition-colors"
+                aria-label="Đóng modal"
               >
                 &times;
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={showAddModal ? handleAddReader : handleUpdateReader} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Họ</label>
@@ -337,9 +412,14 @@ const ReaderPage = () => {
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}
-                    className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-2xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    aria-label="Họ"
                   />
-                  {formErrors.firstName && <p className="mt-1 text-sm text-red-500">{formErrors.firstName}</p>}
+                  {formErrors.firstName && (
+                    <p className="mt-1 text-sm text-red-500" role="alert">
+                      {formErrors.firstName}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Tên</label>
@@ -348,9 +428,14 @@ const ReaderPage = () => {
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
-                    className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-2xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    aria-label="Tên"
                   />
-                  {formErrors.lastName && <p className="mt-1 text-sm text-red-500">{formErrors.lastName}</p>}
+                  {formErrors.lastName && (
+                    <p className="mt-1 text-sm text-red-500" role="alert">
+                      {formErrors.lastName}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -362,9 +447,14 @@ const ReaderPage = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-2xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    aria-label="Số điện thoại"
                   />
-                  {formErrors.phone && <p className="mt-1 text-sm text-red-500">{formErrors.phone}</p>}
+                  {formErrors.phone && (
+                    <p className="mt-1 text-sm text-red-500" role="alert">
+                      {formErrors.phone}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Email</label>
@@ -373,36 +463,35 @@ const ReaderPage = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-2xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    aria-label="Email"
                   />
-                  {formErrors.email && <p className="mt-1 text-sm text-red-500">{formErrors.email}</p>}
+                  {formErrors.email && (
+                    <p className="mt-1 text-sm text-red-500" role="alert">
+                      {formErrors.email}
+                    </p>
+                  )}
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {showUpdateModal && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Tên đăng nhập</label>
-                  <input
-                    type="text"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  />
-                  {formErrors.username && <p className="mt-1 text-sm text-red-500">{formErrors.username}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Mật khẩu</label>
+                  <label className="block text-sm font-medium text-gray-700">Mật khẩu (để trống nếu không đổi)</label>
                   <input
                     type="password"
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-2xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    aria-label="Mật khẩu"
                   />
-                  {formErrors.password && <p className="mt-1 text-sm text-red-500">{formErrors.password}</p>}
+                  {formErrors.password && (
+                    <p className="mt-1 text-sm text-red-500" role="alert">
+                      {formErrors.password}
+                    </p>
+                  )}
                 </div>
-              </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex items-center">
@@ -416,6 +505,7 @@ const ReaderPage = () => {
                         checked={formData.gender === true}
                         onChange={() => setFormData((prev) => ({ ...prev, gender: true }))}
                         className="form-radio text-blue-600"
+                        aria-label="Nam"
                       />
                       <span className="ml-2">Nam</span>
                     </label>
@@ -427,6 +517,7 @@ const ReaderPage = () => {
                         checked={formData.gender === false}
                         onChange={() => setFormData((prev) => ({ ...prev, gender: false }))}
                         className="form-radio text-blue-600"
+                        aria-label="Nữ"
                       />
                       <span className="ml-2">Nữ</span>
                     </label>
@@ -445,6 +536,7 @@ const ReaderPage = () => {
                       file:text-sm file:font-semibold
                       file:bg-blue-50 file:text-blue-700
                       hover:file:bg-blue-100"
+                    aria-label="Ảnh đại diện"
                   />
                   {preview && (
                     <div className="mt-2">
@@ -454,27 +546,30 @@ const ReaderPage = () => {
                 </div>
               </div>
 
-              {formErrors.submit && <div className="text-red-500 text-center">{formErrors.submit}</div>}
+              {formErrors.submit && (
+                <div className="text-red-500 text-center" role="alert">
+                  {formErrors.submit}
+                </div>
+              )}
 
               <div className="flex justify-end gap-4">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowModal(false);
-                    resetForm();
-                  }}
-                  className="px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-300 transition-colors"
+                  onClick={resetForm}
+                  className="px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-2xl hover:bg-gray-300 transition"
+                  aria-label="Hủy"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-3 bg-blue-600 text-white font-medium rounded-xl
+                  className="px-6 py-3 bg-blue-600 text-white font-medium rounded-2xl
                     hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
-                    disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                    disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  aria-label={showAddModal ? 'Thêm độc giả' : 'Cập nhật độc giả'}
                 >
-                  {loading ? 'Đang xử lý...' : 'Đăng ký'}
+                  {loading ? 'Đang xử lý...' : showAddModal ? 'Thêm' : 'Cập nhật'}
                 </button>
               </div>
             </form>
@@ -490,14 +585,20 @@ const ReaderPage = () => {
           >
             <div className="flex items-center gap-4">
               {searchResult.avatar ? (
-                <img src={searchResult.avatar} alt={searchResult.name} className="w-16 h-16 object-cover rounded-full shadow" />
+                <img
+                  src={searchResult.avatar}
+                  alt={searchResult.name}
+                  className="w-16 h-16 object-cover rounded-full shadow"
+                />
               ) : (
                 <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
                   <span className="text-gray-400 text-xs">No avatar</span>
                 </div>
               )}
               <div>
-                <h3 className="font-semibold text-lg text-gray-900">{searchResult.name || searchResult.fullName}</h3>
+                <h3 className="font-semibold text-lg text-gray-900">
+                  {searchResult.name || `${searchResult.firstName} ${searchResult.lastName}`}
+                </h3>
                 <p className="text-gray-700">Email: {searchResult.email}</p>
                 <p className="text-gray-700">SĐT: {searchResult.phone}</p>
                 <p className="text-sm text-gray-500">Giới tính: {searchResult.gender ? 'Nam' : 'Nữ'}</p>
@@ -510,10 +611,19 @@ const ReaderPage = () => {
               </div>
             </div>
             <div className="flex gap-2">
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold transition"
+                onClick={() => openUpdateModal(searchResult)}
+                aria-label={`Cập nhật độc giả ${searchResult.id}`}
+              >
+                <PencilIcon className="h-5 w-5 inline mr-1" />
+                Cập nhật
+              </button>
               {!searchResult.isMember && (
                 <button
                   className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold transition"
                   onClick={() => handleRenewMember(searchResult.id)}
+                  aria-label={`Gia hạn thành viên cho độc giả ${searchResult.id}`}
                 >
                   Gia hạn thành viên
                 </button>
@@ -524,7 +634,7 @@ const ReaderPage = () => {
       ) : (
         loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" aria-label="Đang tải"></div>
           </div>
         ) : (
           <>
@@ -536,14 +646,20 @@ const ReaderPage = () => {
                 >
                   <div className="flex items-center gap-4">
                     {reader.avatar ? (
-                      <img src={reader.avatar} alt={reader.name} className="w-16 h-16 object-cover rounded-full shadow" />
+                      <img
+                        src={reader.avatar}
+                        alt={reader.name}
+                        className="w-16 h-16 object-cover rounded-full shadow"
+                      />
                     ) : (
                       <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
                         <span className="text-gray-400 text-xs">No avatar</span>
                       </div>
                     )}
                     <div>
-                      <h3 className="font-semibold text-lg text-gray-900">{reader.name || reader.fullName}</h3>
+                      <h3 className="font-semibold text-lg text-gray-900">
+                        {reader.name || `${reader.firstName} ${reader.lastName}`}
+                      </h3>
                       <p className="text-gray-700">Email: {reader.email}</p>
                       <p className="text-gray-700">SĐT: {reader.phone}</p>
                       <p className="text-sm text-gray-500">Giới tính: {reader.gender ? 'Nam' : 'Nữ'}</p>
@@ -556,10 +672,19 @@ const ReaderPage = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
+                    <button
+                      className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold transition"
+                      onClick={() => openUpdateModal(reader)}
+                      aria-label={`Cập nhật độc giả ${reader.id}`}
+                    >
+                      <PencilIcon className="h-5 w-5 inline mr-1" />
+                      Cập nhật
+                    </button>
                     {!reader.isMember && (
                       <button
                         className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold transition"
                         onClick={() => handleRenewMember(reader.id)}
+                        aria-label={`Gia hạn thành viên cho độc giả ${reader.id}`}
                       >
                         Gia hạn thành viên
                       </button>
@@ -572,7 +697,8 @@ const ReaderPage = () => {
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 0}
-                className="px-4 py-2 bg-gray-200 text-gray-600 rounded-lg disabled:opacity-50 hover:bg-gray-300"
+                className="px-4 py-2 bg-gray-200 text-gray-600 rounded-2xl disabled:opacity-50 hover:bg-gray-300"
+                aria-label="Trang trước"
               >
                 Trang trước
               </button>
@@ -582,7 +708,8 @@ const ReaderPage = () => {
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage >= totalPages - 1}
-                className="px-4 py-2 bg-gray-200 text-gray-600 rounded-lg disabled:opacity-50 hover:bg-gray-300"
+                className="px-4 py-2 bg-gray-200 text-gray-600 rounded-2xl disabled:opacity-50 hover:bg-gray-300"
+                aria-label="Trang sau"
               >
                 Trang sau
               </button>
@@ -607,6 +734,7 @@ const ReaderPage = () => {
                   setSelectedMembershipId(null);
                 }}
                 className="text-gray-400 hover:text-gray-500 transition-colors"
+                aria-label="Đóng modal thanh toán"
               >
                 &times;
               </button>
@@ -616,12 +744,14 @@ const ReaderPage = () => {
                 <button
                   onClick={() => handlePaymentMethodSelect('direct')}
                   className="px-5 py-3 bg-blue-600 text-white rounded-2xl shadow hover:bg-blue-700 font-semibold transition"
+                  aria-label="Thanh toán trực tiếp"
                 >
                   Thanh toán trực tiếp
                 </button>
                 <button
                   onClick={() => handlePaymentMethodSelect('online')}
                   className="px-5 py-3 bg-blue-600 text-white rounded-2xl shadow hover:bg-blue-700 font-semibold transition"
+                  aria-label="Thanh toán online"
                 >
                   Thanh toán online
                 </button>
@@ -637,6 +767,7 @@ const ReaderPage = () => {
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Nhập tiêu đề"
                     className="p-3 border border-gray-300 rounded-2xl shadow focus:ring-2 focus:ring-blue-400 transition w-full"
+                    aria-label="Tiêu đề thanh toán"
                   />
                 </div>
                 <div>
@@ -645,6 +776,7 @@ const ReaderPage = () => {
                     value={selectedMembershipId || ''}
                     onChange={(e) => setSelectedMembershipId(e.target.value)}
                     className="p-3 border border-gray-300 rounded-2xl shadow focus:ring-2 focus:ring-blue-400 transition w-full"
+                    aria-label="Chọn gói thành viên"
                   >
                     <option value="" disabled>
                       -- Chọn gói --
@@ -663,6 +795,7 @@ const ReaderPage = () => {
                     value={paymentDate}
                     onChange={(e) => setPaymentDate(e.target.value)}
                     className="p-3 border border-gray-300 rounded-2xl shadow focus:ring-2 focus:ring-blue-400 transition w-full"
+                    aria-label="Ngày thanh toán"
                   />
                 </div>
                 <div>
@@ -672,6 +805,7 @@ const ReaderPage = () => {
                     value={amount}
                     readOnly
                     className="p-3 border border-gray-300 rounded-2xl shadow bg-gray-100 w-full"
+                    aria-label="Số tiền"
                   />
                 </div>
                 <div>
@@ -682,6 +816,7 @@ const ReaderPage = () => {
                     placeholder="Nhập ghi chú"
                     className="p-3 border border-gray-300 rounded-2xl shadow focus:ring-2 focus:ring-blue-400 transition w-full"
                     rows={4}
+                    aria-label="Ghi chú"
                   />
                 </div>
                 <div className="flex gap-4">
@@ -689,17 +824,23 @@ const ReaderPage = () => {
                     onClick={paymentMethod === 'direct' ? handleDirectPayment : handleOnlinePayment}
                     className="px-5 py-3 bg-green-600 text-white rounded-2xl shadow hover:bg-green-700 font-semibold transition"
                     disabled={paymentLoading}
+                    aria-label={paymentMethod === 'direct' ? 'Xác nhận thanh toán' : 'Tiến hành thanh toán'}
                   >
                     {paymentMethod === 'direct' ? 'Xác nhận' : paymentLoading ? 'Đang xử lý...' : 'Tiến hành thanh toán'}
                   </button>
                   <button
                     onClick={() => setPaymentMethod(null)}
                     className="px-5 py-3 bg-gray-200 text-gray-700 rounded-2xl shadow hover:bg-gray-300 font-semibold transition"
+                    aria-label="Quay lại"
                   >
                     Quay lại
                   </button>
                 </div>
-                {paymentError && <div className="text-red-500 mt-2">{paymentError}</div>}
+                {paymentError && (
+                  <div className="text-red-500 mt-2" role="alert">
+                    {paymentError}
+                  </div>
+                )}
               </div>
             )}
           </div>

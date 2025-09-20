@@ -15,6 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,21 +51,21 @@ public class BookServiceImpl implements BookService {
 
 
     @Override
-    public Book findByIsbn(String isbn) {
+    public List<Book> findByIsbn(String isbn) {
         if (isbn == null) {
-            return null;
+            return Collections.emptyList(); // trả về list rỗng thay vì null
         }
 
         if (isbn.length() == 10) {
-            Optional<Book> book = this.bookRepository.findByIsbn10(isbn);
-            return book.orElse(null);
+            return this.bookRepository.findByIsbn10(isbn);
         } else if (isbn.length() == 13) {
-            Optional<Book> book = this.bookRepository.findByIsbn13(isbn);
-            return book.orElse(null);
+            return this.bookRepository.findByIsbn13(isbn);
         }
 
-        return null;
+        return Collections.emptyList();
     }
+
+
 
     @Override
     public Book getBookByNameAuthorPublishedDate(String title, String author, int publishedDate) {

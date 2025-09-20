@@ -1,19 +1,23 @@
 package com.tnc.library.pojo;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tnc.library.enums.SenderType;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.*;
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 
-
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "chat_messages")
-public class ChatMessages {
+public class ChatMessages implements Serializable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -41,5 +45,18 @@ public class ChatMessages {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
-}
 
+    // ================= equals & hashCode =================
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ChatMessages)) return false;
+        ChatMessages that = (ChatMessages) o;
+        return id != null && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
+}

@@ -40,7 +40,7 @@ public class PrintedBookBorrowSlipServiceImpl implements PrintedBookBorrowSlipSe
 
             for (Integer bookId : bookIds) {
                 PrintedBookBorrowSlip pbbs = new PrintedBookBorrowSlip();
-                pbbs.setBorrowSlipId(borrowSlip);
+                pbbs.setBorrowSlip(borrowSlip);
 
                 Book book = this.bookRepository.findById(bookId)
                         .orElseThrow(() -> new RuntimeException("Book not found with id: " + bookId));
@@ -66,7 +66,7 @@ public class PrintedBookBorrowSlipServiceImpl implements PrintedBookBorrowSlipSe
 
     @Override
     public List<PrintedBookBorrowSlip> getByBorrowSlip(BorrowSlip borrowSlip) {
-        return this.printedBookBorrowSlipRepository.findByBorrowSlipId(borrowSlip);
+        return this.printedBookBorrowSlipRepository.findByBorrowSlip(borrowSlip);
     }
 
     @Override

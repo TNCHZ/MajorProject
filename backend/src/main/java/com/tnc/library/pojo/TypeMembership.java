@@ -19,6 +19,8 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -28,7 +30,8 @@ import java.util.Set;
  *
  * @author ADMIN
  */
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "type_membership")
 public class TypeMembership implements Serializable {
@@ -57,7 +60,7 @@ public class TypeMembership implements Serializable {
     @Column(name = "can_read_ebook")
     private Boolean canReadEbook;
     @JsonIgnore
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "typeId")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "type")
     private Set<MembershipRenewal> membershipRenewalSet;
 
 }

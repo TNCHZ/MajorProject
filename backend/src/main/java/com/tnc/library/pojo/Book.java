@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.tnc.library.pojo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -9,6 +5,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,13 +14,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.Set;
 
-/**
- *
- * @author ADMIN
- */
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "book")
 public class Book implements Serializable {
@@ -32,78 +26,99 @@ public class Book implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Integer id;
-    @Basic(optional = false)
+
     @NotNull
     @Size(min = 1, max = 255)
-    @Column(name = "title")
+    @Column(name = "title", nullable = false)
     private String title;
-    @Basic(optional = false)
+
     @NotNull
-    @Lob
-    @Size(min = 1, max = 65535)
-    @Column(name = "description")
+    @Size(min = 1)
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
-    @Basic(optional = false)
+
     @NotNull
     @Size(min = 1, max = 255)
-    @Column(name = "publisher")
+    @Column(name = "publisher", nullable = false)
     private String publisher;
-    @Basic(optional = false)
+
     @NotNull
-    @Column(name = "published_date")
+    @Column(name = "published_date", nullable = false)
     private int publishedDate;
-    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
-    @Basic(optional = false)
+
     @NotNull
-    @Column(name = "price")
+    @Column(name = "price", nullable = false)
     private BigDecimal price;
-    @Basic(optional = false)
+
     @NotNull
     @Size(min = 1, max = 255)
-    @Column(name = "author")
+    @Column(name = "author", nullable = false)
     private String author;
-    @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 255)
-    @Column(name = "image")
-    private String image;
+
     @Size(max = 10)
     @Column(name = "isbn_10")
     private String isbn10;
+
     @Size(max = 13)
     @Column(name = "isbn_13")
     private String isbn13;
-    @Basic(optional = false)
+
     @NotNull
-    @Column(name = "is_printed")
+    @Size(min = 1, max = 255)
+    @Column(name = "image", nullable = false)
+    private String image;
+
+    @NotNull
+    @Column(name = "is_printed", nullable = false)
     private boolean isPrinted;
-    @Basic(optional = false)
+
     @NotNull
-    @Column(name = "is_electronic")
+    @Column(name = "is_electronic", nullable = false)
     private boolean isElectronic;
-    @Column(name = "created_date")
-    @Temporal(TemporalType.TIMESTAMP)
+
     @CreationTimestamp
-    private Date createdDate;
-    @Column(name = "updated_date")
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_date", updatable = false)
+    private Date createdDate;
+
     @UpdateTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "updated_date")
     private Date updatedDate;
+
     @Size(max = 50)
     @Column(name = "language")
     private String language;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "bookId")
-    private Set<CategoryBook> categoryBookSet;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "book")
-    private EBook eBook;
-    @JoinColumn(name = "librarian_id", referencedColumnName = "id")
+
+    // ================= QUAN HỆ =================
+
+    // User thủ thư quản lý sách
     @ManyToOne
-    private Librarian librarianId;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "bookId")
-    private Set<Interact> interactSet;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "book")
+    @JoinColumn(name = "librarian_id", referencedColumnName = "id")
+    @JsonIgnore
+    private User librarian;
+
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "book", orphanRemoval = true)
+    private EBook eBook;
+
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "book", orphanRemoval = true)
     private PrintedBook printedBook;
+
     @Transient
     @JsonIgnore
     private MultipartFile file;
+
+    // ================= equals & hashCode =================
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Book)) return false;
+        Book book = (Book) o;
+        return id != null && id.equals(book.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
 }
