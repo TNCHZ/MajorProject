@@ -36,22 +36,19 @@ public class ApiEBookController {
 
     @GetMapping("/ebooks/{id}/file")
     public ResponseEntity<?> readEBook(@PathVariable Integer id, Principal principal) {
-//        String username = principal.getName();
-//        User currentUser = userSer.getUserByUsername(username);
-//
-//        if (!currentUser.getReader().isMember()) {
-//            return ResponseEntity
-//                    .status(HttpStatus.FORBIDDEN)
-//                    .body("Bạn chưa gia hạn thành viên");
-//        }
-//
-//        if(!membershipRenewalService.canReaderReadEbook(currentUser.getId()))
-//            return ResponseEntity
-//                    .status(HttpStatus.FORBIDDEN)
-//                    .body("Bạn không thuộc loại thành viên được xem Ebook");
+        String username = principal.getName();
+        User currentUser = userSer.getUserByUsername(username);
 
+        if (!currentUser.getReader().isMember()) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body("Bạn chưa gia hạn thành viên");
+        }
 
-
+        if(!membershipRenewalService.findLatestByReaderId(currentUser.getId()).getType().getCanReadEbook())
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body("Bạn không thuộc loại thành viên được xem Ebook");
 
         try {
             EBook ebook = eBookService.getBookByEBookId(id);

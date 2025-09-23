@@ -44,7 +44,6 @@ const LoginPage = () => {
                 type: 'login',
                 payload: userRes.data,
             });
-            console.log(userRes.role);
             nav('/main');
         } catch (err) {
             setMsg('Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản/mật khẩu.');

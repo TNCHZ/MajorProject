@@ -136,10 +136,10 @@ public class ApiBorrowSlipController {
                 return ResponseEntity.ok("Sách đã được trả");
 
             if (status.equals(BorrowStatus.BORROWING)) {
-                Date today1 = new Date(); // ngày hôm nay
+                Date today1 = new Date();
                 Calendar cal = Calendar.getInstance();
                 cal.setTime(today1);
-                cal.add(Calendar.MONTH, 1); // cộng thêm 1 tháng
+                cal.add(Calendar.MONTH, 1);
                 Date dueDate = cal.getTime();
                 borrowSlip.setBorrowDate(today);
                 borrowSlip.setDueDate(dueDate);

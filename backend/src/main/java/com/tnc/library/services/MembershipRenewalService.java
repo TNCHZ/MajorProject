@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface MembershipRenewalService{
     MembershipRenewal addOrUpdateMembership(MembershipRenewal m);
-    boolean canReaderReadEbook(Integer id);
+    MembershipRenewal findLatestByReaderId(Integer id);
     List<MembershipRenewal> getMembershipsExpired();
 }

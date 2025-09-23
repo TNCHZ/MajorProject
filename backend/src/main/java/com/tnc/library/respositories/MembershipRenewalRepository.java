@@ -10,12 +10,10 @@ import java.util.List;
 
 @Repository
 public interface MembershipRenewalRepository extends JpaRepository<MembershipRenewal, Integer> {
-    @Query("SELECT tm.canReadEbook FROM MembershipRenewal mr " +
-            "JOIN mr.type tm " +
+    @Query("SELECT mr FROM MembershipRenewal mr " +
             "WHERE mr.reader.id = :readerId " +
-            "AND CURRENT_TIMESTAMP BETWEEN mr.startDate AND mr.expireDate " +
             "ORDER BY mr.expireDate DESC")
-    Boolean canReaderReadEbook(@Param("readerId") Integer readerId);
+    MembershipRenewal findLatestByReaderId(@Param("readerId") Integer readerId);
 
 
 

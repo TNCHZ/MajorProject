@@ -2,6 +2,7 @@ package com.tnc.library.services;
 
 
 import com.tnc.library.pojo.MembershipRenewal;
+import com.tnc.library.pojo.Reader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,9 @@ public class ScheduleService {
             this.mailService.sendMail(membershipRenewal.getReader().getEmail(), "Hết hạn thành viên", "Gói gia hạn của bạn đã hết hạn vào ngày " + membershipRenewal.getExpireDate());
             membershipRenewal.setIsNotify(Boolean.TRUE);
             this.membershipRenewalService.addOrUpdateMembership(membershipRenewal);
+            Reader reader = membershipRenewal.getReader().getReader();
+            reader.setMember(Boolean.FALSE);
+            this.readerService.addOrUpdateReader(reader);
         }
     }
 }

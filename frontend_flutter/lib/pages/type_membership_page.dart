@@ -5,8 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:mobile_app/models/type_membership.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
-
 class TypeMembershipPage extends StatefulWidget {
   const TypeMembershipPage({super.key});
 
@@ -134,19 +132,6 @@ class _TypeMembershipPageState extends State<TypeMembershipPage> {
                   ),
                 ],
               ),
-            const SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Xử lý logic khi người dùng chọn mua gói này
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Bạn đã chọn gói ${membership.title}")),
-                  );
-                },
-                child: const Text("Chọn mua"),
-              ),
-            ),
           ],
         ),
       ),

@@ -45,6 +45,7 @@ export const endpoints = {
 	'fine-delete':  (id) => `/fine/delete/${id}`,
 	'add-user': '/add/user',
 	'user-update': (id) => `/user/update/${id}`,
+	'user-delete': (id) => `/user/delete/${id}`,
 }
 
 export const authApis = () => {

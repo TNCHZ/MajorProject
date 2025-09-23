@@ -41,6 +41,8 @@ dependencies:
   velocity_x: ^4.1.1
   styled_widget: ^0.4.0
   stomp_dart_client: ^2.0.0
+  webview_flutter: ^4.7.0
+
 
 dev_dependencies:
   flutter_test:

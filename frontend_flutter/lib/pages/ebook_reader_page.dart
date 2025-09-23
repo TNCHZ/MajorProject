@@ -1,8 +1,7 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 import '../api/api_client.dart';
 
 class EbookReaderPage extends StatefulWidget {
@@ -15,7 +14,7 @@ class EbookReaderPage extends StatefulWidget {
 }
 
 class _EbookReaderPageState extends State<EbookReaderPage> {
-  String? _pdfUrl;
+  Uint8List? _pdfBytes;
   String? _errorMessage;
   bool _isLoading = true;
 
@@ -31,39 +30,23 @@ class _EbookReaderPageState extends State<EbookReaderPage> {
       _errorMessage = null;
     });
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("token");
-
-    if (token == null || token.isEmpty) {
-      setState(() {
-        _errorMessage = "Vui lòng đăng nhập để xem nội dung này.";
-        _isLoading = false;
-      });
-      return;
-    }
-
-    final pdfUrl = "${BASE_URL}${Endpoints.ebookFile(widget.ebookId)}";
-
     try {
-      final response = await http.get(
-        Uri.parse(pdfUrl),
-        headers: {"Authorization": "Bearer $token"},
-      );
+      // gọi API qua AuthApiClient
+      final response = await AuthApiClient.get(Endpoints.ebookFile(widget.ebookId));
 
       if (response.statusCode == 200) {
-        // Ebook trả về file PDF
         setState(() {
-          _pdfUrl = pdfUrl;
+          _pdfBytes = response.bodyBytes; // lấy binary PDF
           _isLoading = false;
         });
       } else {
         // Trường hợp lỗi, backend trả text thuần
         String message;
         try {
-          final body = json.decode(response.body);
-          message = body['message'] ?? response.body;
+          final body = json.decode(utf8.decode(response.bodyBytes));
+          message = body['message'] ?? utf8.decode(response.bodyBytes);
         } catch (e) {
-          message = response.body; // fallback plain text
+          message = utf8.decode(response.bodyBytes);
         }
 
         setState(() {
@@ -78,7 +61,6 @@ class _EbookReaderPageState extends State<EbookReaderPage> {
       });
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -99,13 +81,8 @@ class _EbookReaderPageState extends State<EbookReaderPage> {
             ),
           ),
         )
-            : _pdfUrl != null
-            ? SfPdfViewer.network(
-          _pdfUrl!,
-          headers: {
-            "Authorization": "Bearer ${ModalRoute.of(context)!.settings.arguments}",
-          },
-        )
+            : _pdfBytes != null
+            ? SfPdfViewer.memory(_pdfBytes!)
             : const Text("Đã xảy ra lỗi không xác định."),
       ),
     );

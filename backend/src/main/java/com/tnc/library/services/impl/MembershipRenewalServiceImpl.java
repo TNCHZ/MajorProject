@@ -22,9 +22,10 @@ public class MembershipRenewalServiceImpl implements MembershipRenewalService {
     }
 
     @Override
-    public boolean canReaderReadEbook(Integer id) {
-        return membershipRenewalRepository.canReaderReadEbook(id);
+    public MembershipRenewal findLatestByReaderId(Integer id) {
+        return this.membershipRenewalRepository.findLatestByReaderId(id);
     }
+
 
     @Override
     public List<MembershipRenewal> getMembershipsExpired() {

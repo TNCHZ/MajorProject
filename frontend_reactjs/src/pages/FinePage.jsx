@@ -182,17 +182,6 @@ const FinePage = () => {
 
   return (
     <div className="p-4 sm:p-6">
-      <div className="flex justify-between items-center mb-6 sm:mb-8">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Quản lý Phiếu phạt</h2>
-        <button
-          onClick={() => navigate('/main/fines/add-fine')}
-          className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow transition-colors duration-200 font-medium"
-          aria-label="Thêm phiếu phạt"
-        >
-          Thêm phiếu phạt
-        </button>
-      </div>
-
       {/* Filter by Phone Number */}
       <div className="mb-6">
         <label className="block text-base font-semibold text-gray-700 mb-2">Lọc theo số điện thoại độc giả</label>
