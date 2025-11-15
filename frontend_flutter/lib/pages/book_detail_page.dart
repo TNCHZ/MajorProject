@@ -283,14 +283,14 @@ class _BookDetailPageState extends State<BookDetailPage> {
                   color: Colors.black87),
             ),
             const SizedBox(height: 8),
-            Text("✍️ Tác giả: ${_book!['author'] ?? "Ẩn danh"}"),
-            Text("🏢 NXB: ${_book!['publisher'] ?? "Không rõ"}"),
-            Text("📅 Năm XB: ${_book!['publishedDate'] ?? "?"}"),
+            Text("Tác giả: ${_book!['author'] ?? "Ẩn danh"}"),
+            Text("NXB: ${_book!['publisher'] ?? "Không rõ"}"),
+            Text("Năm XB: ${_book!['publishedDate'] ?? "?"}"),
             const SizedBox(height: 12),
             // Updated section with new fields
-            Text("📍 Vị trí kệ: ${_book!['shelfLocation'] ?? "N/A"}"),
-            Text("📦 Tổng số bản: $totalCopy"),
-            Text("📚 Sẵn có: $availableCopies"),
+            Text("Vị trí kệ: ${_book!['shelfLocation'] ?? "N/A"}"),
+            Text("Tổng số bản: $totalCopy"),
+            Text("Sẵn có: $availableCopies"),
             const SizedBox(height: 24),
             Text(
               _book!['description'] ?? "Chưa có mô tả",
@@ -350,21 +350,22 @@ class _BookDetailPageState extends State<BookDetailPage> {
           },
         ),
         const SizedBox(height: 12),
-        _actionButton(
-          icon: Icons.menu_book,
-          text: "Đọc E-book",
-          color: Colors.blueAccent,
-          onPressed: () async {
-            if (await _requireLogin(context) && _book != null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => EbookReaderPage(ebookId: _book!['id']),
-                ),
-              );
-            }
-          },
-        ),
+        if (_book?['isElectronic'] == true)
+          _actionButton(
+            icon: Icons.menu_book,
+            text: "Đọc E-book",
+            color: Colors.blueAccent,
+            onPressed: () async {
+              if (await _requireLogin(context) && _book != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => EbookReaderPage(ebookId: _book!['id']),
+                  ),
+                );
+              }
+            },
+          ),
         const SizedBox(height: 12),
         _actionButton(
           icon: Icons.reviews,

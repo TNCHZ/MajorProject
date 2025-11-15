@@ -273,10 +273,21 @@ const BorrowSlipPage = () => {
     setMarkingLost(true);
     try {
       const totalPrice = selectedBooks.reduce((sum, book) => sum + book.price, 0).toFixed(2);
+
+      // Lấy danh sách tất cả bookIds trong phiếu mượn
+      const allBookIds = lostBooks.map(book => book.id);
+
+      // Sách bị mất/hư: được chọn
+      const lostBookIds = selectedBookIds;
+
+      // Sách còn lại: không được chọn → coi như đã trả
+      const returnBookIds = allBookIds.filter(id => !selectedBookIds.includes(id));
+
       const payload = {
-        status: selectedStatus,
+        status: selectedStatus, // 'LOST' hoặc 'DAMAGED'
         book_price: totalPrice,
-        bookIds: selectedBookIds,
+        bookIds: lostBookIds,        // ← Sách bị mất/hư
+        returnBookIds: returnBookIds,    // ← Sách đã trả (không mất)
         returnDate: formatDate(new Date(), true),
       };
 
@@ -286,17 +297,18 @@ const BorrowSlipPage = () => {
           : endpoints['update-borrow-slip'].replace('{id}', selectedSlipId);
 
       const response = await authApis().patch(updateEndpoint, payload);
-      alert(response.data || `Đã đánh dấu sách ${selectedStatus === 'LOST' ? 'mất' : 'hư'}`);
+      alert(response.data || `Đã xử lý thành công!`);
       fetchBorrowSlips();
       closeLostBooksModal();
       setShowStatusModal(false);
     } catch (err) {
       console.error(`Lỗi khi xác nhận trạng thái ${selectedStatus}:`, err);
       alert(
-        `Có lỗi xảy ra khi đánh dấu sách ${selectedStatus === 'LOST' ? 'mất' : 'hư'}: ${err.response?.data || err.message}`
+        `Có lỗi xảy ra: ${err.response?.data || err.message}`
       );
+    } finally {
+      setMarkingLost(false);
     }
-    setMarkingLost(false);
   };
 
   const closeLostBooksModal = () => {
@@ -680,7 +692,6 @@ const BorrowSlipPage = () => {
                           <div className="flex-1">
                             <div className="font-semibold text-gray-800">{b.title}</div>
                             <div className="text-xs text-gray-500">{b.author}</div>
-                            <div className="text-xs text-gray-500">{b.id}</div>
                           </div>
                           <button
                             type="button"
@@ -887,10 +898,10 @@ const BorrowSlipPage = () => {
                 onClick={confirmBooksStatus}
                 disabled={markingLost || lostBooks.length === 0}
                 className={`px-4 py-2 rounded-lg text-white font-medium transition-colors duration-200 ${markingLost || lostBooks.length === 0
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : selectedStatus === 'LOST'
-                      ? 'bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800'
-                      : 'bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-800'
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : selectedStatus === 'LOST'
+                    ? 'bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800'
+                    : 'bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-600 hover:to-orange-800'
                   }`}
               >
                 {markingLost ? 'Đang xử lý...' : 'Xác nhận'}

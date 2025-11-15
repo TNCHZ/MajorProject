@@ -81,8 +81,9 @@ public class ApiBorrowSlipController {
 
             for (Integer bookId : bookIds) {
                 PrintedBook printedBook = this.printedBookService.getBookByPrintedBookId(bookId);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Sách \"" + printedBook.getBook().getTitle() + "\" đã hết, không thể mượn thêm!");
+                if(printedBook.getBorrowCount() == printedBook.getTotalCopy())
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body("Sách \"" + printedBook.getBook().getTitle() + "\" đã hết, không thể mượn thêm!");
             }
 
             BorrowSlip borrowSlip = new BorrowSlip();
@@ -161,7 +162,6 @@ public class ApiBorrowSlipController {
                 if (status.equals(BorrowStatus.RETURNED)) {
                     for (Integer bookId : bookIds) {
                         PrintedBook printedBook = this.printedBookService.getBookByPrintedBookId(bookId);
-                        System.out.println(printedBook.getBorrowCount());
                         printedBook.setBorrowCount(printedBook.getBorrowCount() - 1);
                         this.printedBookService.addOrUpdatePrintedBook(printedBook);
                     }
@@ -183,6 +183,14 @@ public class ApiBorrowSlipController {
                     fine.setLibrarian(currentUser);
                     fine.setBorrowSlip(borrowSlip1);
                     this.fineService.addOrUpdateFine(fine);
+
+                    List<Integer> returnBookIds = (List<Integer>) updates.get("returnBookIds");
+
+                    for (Integer returnBookId : returnBookIds) {
+                        PrintedBook printedBook = this.printedBookService.getBookByPrintedBookId(returnBookId);
+                        printedBook.setBorrowCount(printedBook.getBorrowCount() - 1);
+                        this.printedBookService.addOrUpdatePrintedBook(printedBook);
+                    }
 
                     if (status.equals(BorrowStatus.LOST)) {
                         for (Integer bookId : bookIds) {
@@ -413,7 +421,8 @@ public class ApiBorrowSlipController {
 
             for (Integer bookId : bookIds) {
                 PrintedBook printedBook = this.printedBookService.getBookByPrintedBookId(bookId);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                if(printedBook.getBorrowCount() == printedBook.getTotalCopy())
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Sách \"" + printedBook.getBook().getTitle() + "\" đã hết, không thể mượn thêm!");
             }
 

@@ -26,28 +26,93 @@ const COLORS = ["#f97316", "#22c55e"]; // orange (Fine), green (Membership)
 const fmtVND = (n) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(n);
 
+const exportAllPaymentsToCSV = async () => {
+  try {
+    const allRows = [];
+    let page = 0;
+    const size = 50; // có thể thay đổi
+    let totalPages = 1;
+
+    do {
+      const res = await authApis().get(endpoints["payments"], {
+        params: { page, size, sortBy: "id" },
+      });
+
+      const data = res.data?.content || [];
+      totalPages = res.data?.totalPages || 1;
+
+      const mapped = data.map((p) => ({
+        id: p.id,
+        date: p.paymentDate
+          ? new Date(p.paymentDate).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
+        user: p.user,
+        type: mapPaymentType(p.description?.toLowerCase(), p.type),
+        desc: p.description,
+        amount: p.amount,
+      }));
+
+      allRows.push(...mapped);
+      page++;
+    } while (page < totalPages);
+
+    exportCSV(allRows, "all_revenue.csv");
+    alert(`✅ Xuất thành công ${allRows.length} bản ghi`);
+  } catch (err) {
+    console.error("Lỗi khi tải toàn bộ payments:", err);
+    alert("❌ Không thể xuất CSV");
+  }
+};
+
 function exportCSV(rows, filename = "revenue.csv") {
-  if (!rows?.length) return;
+  if (!Array.isArray(rows) || rows.length === 0) return;
+
   const cols = ["id", "date", "user", "type", "desc", "amount"];
-  const csv = [
-    cols.join(","),
-    ...rows.map((r) =>
-      cols
-        .map((c) => {
-          if (c === "type") return JSON.stringify(TYPE_LABEL[r[c]] || r[c]);
-          return JSON.stringify(r[c] ?? "");
-        })
-        .join(",")
-    ),
-  ].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const headers = cols.join(";"); 
+
+  const csvRows = rows.map((r) =>
+    cols
+      .map((c) => {
+        let value = r[c];
+
+        if (c === "date" && value) {
+          try {
+            value = new Date(value).toISOString().split("T")[0];
+          } catch {}
+        }
+
+        if (c === "type" && typeof TYPE_LABEL !== "undefined") {
+          value = TYPE_LABEL[r[c]] || r[c];
+        }
+
+        if (c === "amount" && typeof value === "number") {
+          value = value.toLocaleString("vi-VN");
+        }
+
+        if (typeof value === "string") {
+          value = value.replace(/"/g, '""').replace(/\n/g, " ");
+        }
+
+        return `"${value ?? ""}"`;
+      })
+      .join(";")
+  );
+
+  // ⚡ Thêm BOM UTF-8
+  const csvContent = "\uFEFF" + [headers, ...csvRows].join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
+
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
   a.click();
+
   URL.revokeObjectURL(url);
 }
+
+
 
 function mapPaymentType(description, type) {
   if (type === "Membership") return "MEMBERSHIP";
@@ -61,7 +126,7 @@ export default function RevenueManagementPage() {
   const [chartKind, setChartKind] = useState("BAR"); // BAR | LINE
   const [year, setYear] = useState("2025");
   const [month, setMonth] = useState("");
-  const [revenueData, setRevenueData] = useState({ MEMBERSHIP: 0, FINE: 0 });
+  const [revenueData, setRevenueData] = useState({});
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
@@ -79,7 +144,7 @@ export default function RevenueManagementPage() {
         const params = { year };
         if (month) params.month = month;
         const res = await authApis().get(endpoints['payment-revenue'], { params });
-        setRevenueData(res.data || { MEMBERSHIP: 0, FINE: 0 });
+        setRevenueData(res.data || {});
       } catch (err) {
         console.error('Lỗi khi lấy dữ liệu doanh thu:', err);
       }
@@ -97,7 +162,9 @@ export default function RevenueManagementPage() {
       });
       const mappedTransactions = (res.data.content || []).map((p) => ({
         id: p.id,
-        date: p.date || new Date().toISOString().split("T")[0], // Placeholder date
+        date: p.paymentDate
+          ? new Date(p.paymentDate).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
         user: p.user,
         type: mapPaymentType(p.description.toLowerCase(), p.type),
         desc: p.description,
@@ -124,48 +191,32 @@ export default function RevenueManagementPage() {
     );
   }, [transactions, typeFilter]);
 
-  /** ====== KPIs ====== */
-  const totalRevenue = useMemo(
-    () => revenueData.MEMBERSHIP + revenueData.FINE,
-    [revenueData]
-  );
-
-  /** ====== CHART DATA (by month/year) ====== */
-  const byMonthYearMap = useMemo(() => {
-    const m = new Map();
-    filtered.forEach((t) => {
-      const date = t.date.split('-'); // yyyy-mm-dd
-      const yearVal = date[0];
-      const monthVal = date[1];
-      const dayVal = date[2];
-      if (month) {
-        // Aggregate by day for selected year and month
-        if (yearVal === year && monthVal === month.padStart(2, '0')) {
-          const key = `${year}-${month.padStart(2, '0')}-${dayVal}`;
-          if (!m.has(key)) m.set(key, { date: key, amount: 0 });
-          m.get(key).amount += t.amount;
-        }
-      } else {
-        // Aggregate by month for selected year
-        if (yearVal === year) {
-          const key = `${yearVal}-${monthVal}`;
-          if (!m.has(key)) m.set(key, { date: key, amount: 0 });
-          m.get(key).amount += t.amount;
-        }
-      }
-    });
-    return Array.from(m.values()).sort((a, b) => a.date.localeCompare(b.date));
-  }, [filtered, year, month]);
-
-  /** ====== PIE DATA (by type) ====== */
-  const pieData = useMemo(() => {
-    return [
-      { name: "Membership", value: revenueData.MEMBERSHIP, fill: COLORS[1] },
-      { name: "Fines", value: revenueData.FINE, fill: COLORS[0] },
-    ].filter((d) => d.value > 0);
+  const totalMembership = useMemo(() => {
+    return Object.values(revenueData).reduce((sum, r) => sum + (r.MEMBERSHIP || 0), 0);
   }, [revenueData]);
 
-  /** ====== TABLE & PAGINATION ====== */
+  const totalFine = useMemo(() => {
+    return Object.values(revenueData).reduce((sum, r) => sum + (r.FINE || 0), 0);
+  }, [revenueData]);
+
+  const totalRevenue = totalMembership + totalFine;
+
+  const chartData = useMemo(() => {
+    return Object.entries(revenueData).map(([key, values]) => ({
+      date: month ? `Ngày ${key}` : `Tháng ${key}`,
+      MEMBERSHIP: values.MEMBERSHIP || 0,
+      FINE: values.FINE || 0,
+    }));
+  }, [revenueData, month]);
+
+  const pieData = useMemo(() => {
+    return [
+      { name: "Membership", value: totalMembership, fill: COLORS[1] },
+      { name: "Fines", value: totalFine, fill: COLORS[0] },
+    ].filter((d) => d.value > 0);
+  }, [totalMembership, totalFine]);
+
+
   const paginated = useMemo(() => {
     return filtered; // Server-side pagination
   }, [filtered]);
@@ -191,10 +242,10 @@ export default function RevenueManagementPage() {
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => exportCSV(filtered, "revenue.csv")}
+            onClick={exportAllPaymentsToCSV}
             className="px-3 py-2 rounded-2xl bg-blue-600 text-white shadow hover:bg-blue-700 font-semibold transition"
           >
-            Export CSV
+            Export toàn bộ CSV
           </button>
         </div>
       </div>
@@ -239,21 +290,21 @@ export default function RevenueManagementPage() {
         </div>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-2xl p-4 shadow border">
           <p className="text-xs text-gray-500">Phí thành viên</p>
-          <p className="text-2xl font-semibold">{loading ? 'Đang tải...' : fmtVND(revenueData.MEMBERSHIP)}</p>
+          <p className="text-2xl font-semibold">{loading ? 'Đang tải...' : fmtVND(totalMembership)}</p>
         </div>
         <div className="bg-white rounded-2xl p-4 shadow border">
           <p className="text-xs text-gray-500">Phí phạt</p>
-          <p className="text-2xl font-semibold">{loading ? 'Đang tải...' : fmtVND(revenueData.FINE)}</p>
+          <p className="text-2xl font-semibold">{loading ? 'Đang tải...' : fmtVND(totalFine)}</p>
         </div>
         <div className="bg-white rounded-2xl p-4 shadow border">
           <p className="text-xs text-gray-500">Tổng doanh thu</p>
           <p className="text-2xl font-semibold">{loading ? 'Đang tải...' : fmtVND(totalRevenue)}</p>
         </div>
       </div>
+
 
       {/* Charts */}
       <div className={`grid grid-cols-1 ${typeFilter === "ALL" ? "lg:grid-cols-3" : "lg:grid-cols-1"} gap-4 mb-6`}>
@@ -278,20 +329,24 @@ export default function RevenueManagementPage() {
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               {chartKind === "BAR" ? (
-                <BarChart data={byMonthYearMap}>
+                <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis />
                   <Tooltip formatter={(v) => fmtVND(v)} />
-                  <Bar dataKey="amount" radius={[8, 8, 0, 0]} fill="#3b82f6" />
+                  <Legend />
+                  <Bar dataKey="MEMBERSHIP" fill={COLORS[1]} name="Membership" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="FINE" fill={COLORS[0]} name="Fine" radius={[8, 8, 0, 0]} />
                 </BarChart>
               ) : (
-                <LineChart data={byMonthYearMap}>
+                <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis />
                   <Tooltip formatter={(v) => fmtVND(v)} />
-                  <Line type="monotone" dataKey="amount" stroke="#3b82f6" strokeWidth={2} dot />
+                  <Legend />
+                  <Line type="monotone" dataKey="MEMBERSHIP" stroke={COLORS[1]} name="Membership" strokeWidth={2} dot />
+                  <Line type="monotone" dataKey="FINE" stroke={COLORS[0]} name="Fine" strokeWidth={2} dot />
                 </LineChart>
               )}
             </ResponsiveContainer>
@@ -376,18 +431,16 @@ export default function RevenueManagementPage() {
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className={`px-4 py-2 rounded-2xl shadow font-semibold transition ${
-                page === 0 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+              className={`px-4 py-2 rounded-2xl shadow font-semibold transition ${page === 0 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
             >
               Trang trước
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
-              className={`px-4 py-2 rounded-2xl shadow font-semibold transition ${
-                page >= totalPages - 1 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+              className={`px-4 py-2 rounded-2xl shadow font-semibold transition ${page >= totalPages - 1 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
             >
               Trang sau
             </button>

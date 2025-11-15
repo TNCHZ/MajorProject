@@ -60,7 +60,6 @@ const App = () => {
       <MyDispatchContext.Provider value={dispatch}>
         <Router>
           <Routes>
-            {/* Login không bị bọc trong Container, hiển thị full màn hình */}
             <Route
               path="/login"
               element={user ? <Navigate to="/main" /> : <LoginPage />}
@@ -86,7 +85,7 @@ const App = () => {
                       element={
                         <ProtectedRoute
                           element={<DashboardPage />}
-                          allowedRoles={["ADMIN", "LIBRARIAN"]}
+                          allowedRoles={["ADMIN"]}
                         />
                       }
                     />

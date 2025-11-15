@@ -8,25 +8,31 @@ class CartPage extends StatelessWidget {
 
   Future<void> _reserveBooks(BuildContext context, CartProvider cartProvider) async {
     try {
-      // Body chỉ gồm bookId
       final body = {
-        "books": cartProvider.items.map((item) {
-          return {
-            "bookId": item.bookId,
-          };
+        "books": cartProvider.items.map((item) => {
+          "bookId": item.bookId,
         }).toList(),
       };
 
       final response = await AuthApiClient.post(Endpoints.reserveBook, body);
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      if (response.statusCode == 200) {
+        // Thành công
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Đặt sách thành công ✅")),
+          SnackBar(content: Text(response.body.isNotEmpty ? response.body : "Đặt sách thành công ✅")),
         );
         cartProvider.clearCart();
-      } else {
+      }
+      else if (response.statusCode == 400 || response.statusCode == 403) {
+        // Backend trả lỗi có message cụ thể
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Đặt sách thất bại ❌ (${response.statusCode})")),
+          SnackBar(content: Text(response.body)),
+        );
+      }
+      else {
+        // Các lỗi khác
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Lỗi ${response.statusCode}: ${response.body}")),
         );
       }
     } catch (e) {

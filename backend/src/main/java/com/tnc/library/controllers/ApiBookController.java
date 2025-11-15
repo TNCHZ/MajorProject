@@ -277,7 +277,6 @@ public class ApiBookController {
                     response.put("format", book.getEBook().getFormat());
                     response.put("licence", book.getEBook().getLicence());
                     response.put("totalView", book.getEBook().getTotalView());
-                    response.put("filePDF", book.getEBook().getFileUrl());
                 }
 
             List<Category> categories = categoryBookService.getCategoriesByBook(book);

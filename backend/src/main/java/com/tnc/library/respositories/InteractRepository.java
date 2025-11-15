@@ -11,5 +11,5 @@ import java.util.List;
 
 @Repository
 public interface InteractRepository extends JpaRepository<Interact, Integer> {
-    Page<Interact> findByBookId(Book book, Pageable pageable);
+    Page<Interact> findByBook(Book book, Pageable pageable);
 }

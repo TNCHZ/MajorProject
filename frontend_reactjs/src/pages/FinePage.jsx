@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { authApis, endpoints } from '../configs/Apis';
 import useOnlinePayment from '../hook/UseOnlinePayment';
 
@@ -17,7 +16,6 @@ const FinePage = () => {
   const [filterPhone, setFilterPhone] = useState(''); // State for filter phone number
   const [filterError, setFilterError] = useState(''); // State for filter error
   const [userRole, setUserRole] = useState(null); // State for user role
-  const navigate = useNavigate();
 
   const { initiateOnlinePayment, loading: paymentLoading, error: paymentError } = useOnlinePayment();
 
@@ -222,7 +220,7 @@ const FinePage = () => {
                 <tr>
                   <th className="px-4 py-3 text-center">Mã phạt</th>
                   <th className="px-4 py-3">Lý do</th>
-                  <th className="px-4 py-3 text-center">Ngày phát hành</th>
+                  <th className="px-4 py-3 text-center">Ngày ghi nhận</th>
                   <th className="px-4 py-3 text-center">Trạng thái</th>
                   <th className="px-4 py-3 text-center">Số tiền</th>
                   <th className="px-4 py-3 text-center">Mã độc giả</th>

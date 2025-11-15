@@ -23,7 +23,8 @@ class Endpoints {
   static const String borrowSlipByReader = "borrow-slip/by-reader";
   static const String conversationByUser = "conversation/by-user";
   static const String reserveBook = "borrow-slip/add/by-reader";
-
+  static const String membershipReader = "membership/by-reader";
+  static const String typeFines = "type-fines";
   static String getBook (int id) => "book/$id";
   static String borrowSlipById(int id) => "borrow-slip/$id";
   static String interactsByBook(int id) => "interacts/book/$id";

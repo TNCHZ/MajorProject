@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:mobile_app/pages/about_us_page.dart';
 import 'package:mobile_app/pages/borrow_history_page.dart';
 import 'package:mobile_app/pages/update_profile_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -206,7 +207,12 @@ class _SettingsPageState extends State<SettingsPage> {
             icon: Icons.info,
             title: "Thông tin về chúng tôi",
             onTap: () {
-              // TODO: Navigate to about us page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AboutUsPage(),
+                ),
+              );
             },
           ),
           _buildSettingsTile(

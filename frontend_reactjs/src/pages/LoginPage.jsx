@@ -2,7 +2,6 @@ import React, { useContext, useState } from "react";
 import { MyDispatchContext } from "../configs/Context";
 import APIs, { authApis, endpoints } from "../configs/Apis";
 import cookie from "react-cookies";
-import { useNavigate } from 'react-router-dom';
 import { MdOutlineMailOutline, MdOutlineLock } from "react-icons/md"; // Import icons
 
 const LoginPage = () => {
@@ -11,7 +10,6 @@ const LoginPage = () => {
     const [msg, setMsg] = useState('');
     const [loading, setLoading] = useState(false);
     const dispatch = useContext(MyDispatchContext);
-    const nav = useNavigate();
 
     const validate = () => {
         let errors = {};
@@ -44,7 +42,6 @@ const LoginPage = () => {
                 type: 'login',
                 payload: userRes.data,
             });
-            nav('/main');
         } catch (err) {
             setMsg('Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản/mật khẩu.');
         } finally {

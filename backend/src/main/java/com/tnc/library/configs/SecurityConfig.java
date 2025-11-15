@@ -76,7 +76,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/add/conversation").hasAnyRole("READER", "LIBRARIAN")
                         .requestMatchers("/app/**").permitAll()
                         .requestMatchers("/api/user/change-password").hasAnyRole("ADMIN", "LIBRARIAN", "READER")
-                        .requestMatchers("/api/user/update").hasAnyRole("ADMIN", "LIBRARIAN", "READER")
+                        .requestMatchers("/api/user/update").hasRole("READER")
                         .requestMatchers("/api/book/{id}").permitAll()
                         .requestMatchers("/api/book/update/{id}").hasAnyRole("ADMIN", "LIBRARIAN")
                         .requestMatchers("/api/book/delete/{id}").hasRole("ADMIN")
@@ -86,7 +86,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/fines/by-phone").hasAnyRole("ADMIN", "LIBRARIAN")
                         .requestMatchers("/api/fine/delete/{id}").hasRole("ADMIN")
                         .requestMatchers("/api/add/user").hasRole("ADMIN")
-                        .requestMatchers("/api/user/update/{id}").hasRole("ADMIN")
+                        .requestMatchers("/api/user/update/{id}").hasAnyRole("ADMIN", "LIBRARIAN")
+                        .requestMatchers("/api/membership/by-reader").hasRole("READER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);

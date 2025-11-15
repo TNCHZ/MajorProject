@@ -210,11 +210,6 @@ const ReaderPage = () => {
     if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)) {
       tempErrors.email = 'Email không hợp lệ';
     }
-    if (showUpdateModal && formData.password && formData.password.length < 6) {
-      tempErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
-    }
-    if (!showUpdateModal && !formData.password) tempErrors.password = 'Mật khẩu không được để trống';
-    if (!showUpdateModal && formData.password.length < 6) tempErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
 
     setFormErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
@@ -252,10 +247,9 @@ const ReaderPage = () => {
         alert('Đăng ký độc giả thành công!');
       }
     } catch (err) {
-      console.error('Lỗi khi thêm độc giả:', err);
       setFormErrors((prev) => ({
         ...prev,
-        submit: `Đăng ký thất bại: ${err.response?.data?.message || err.message}`,
+        submit: `Đăng ký thất bại: ${err.response?.data || err.message}`,
       }));
     } finally {
       setLoading(false);

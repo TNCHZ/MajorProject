@@ -1,5 +1,6 @@
 package com.tnc.library.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -31,9 +32,12 @@ public class MembershipRenewal implements Serializable {
     @CreationTimestamp
     private Date createdAt;
 
+
+    @JsonIgnore
     @Column(name = "is_notify", nullable = false)
     private Boolean isNotify = false;
 
+    @JsonIgnore
     @ManyToOne(optional = false)
     @JoinColumn(name = "reader_id", referencedColumnName = "id")
     private User reader;
@@ -42,6 +46,7 @@ public class MembershipRenewal implements Serializable {
     @JoinColumn(name = "type_id", referencedColumnName = "id")
     private TypeMembership type;
 
+    @JsonIgnore
     @OneToOne
     @JoinColumn(name = "payment_id", unique = true)
     private Payment payment;

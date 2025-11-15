@@ -15,6 +15,7 @@ export const endpoints = {
 	'borrow-slips': '/borrow-slips',
 	'borrow-slips-reader': '/borrow-slips/reader',
 	'add-borrow-slip': '/add/borrow-slip',
+	'find-book-by-title': '/book/find-by-title',
 	'find-reader-by-phone': '/reader/find-by-phone',
 	'find-book-by-isbn': '/book/find-by-isbn',
 	'payment-create': '/payment/create',

@@ -18,7 +18,7 @@ public interface MembershipRenewalRepository extends JpaRepository<MembershipRen
 
 
     @Query("SELECT mr FROM MembershipRenewal mr " +
-            "WHERE mr.expireDate > CURRENT_TIMESTAMP " +
+            "WHERE mr.expireDate < CURRENT_TIMESTAMP " +
             "AND mr.isNotify = false")
     List<MembershipRenewal> findAllValidUnnotifiedRenewals();
 }

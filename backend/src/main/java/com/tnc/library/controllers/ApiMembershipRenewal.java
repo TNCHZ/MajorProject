@@ -7,10 +7,7 @@ import com.tnc.library.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -91,4 +88,16 @@ public class ApiMembershipRenewal {
         }
     }
 
+
+    @GetMapping("/membership/by-reader")
+    public ResponseEntity<?> getMemberByReader(Principal principal){
+        try {
+            String username = principal.getName();
+            User user = this.userService.getUserByUsername(username);
+            MembershipRenewal membershipRenewal = this.membershipRenewalService.findLatestByReaderId(user.getId());
+            return ResponseEntity.ok(membershipRenewal);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

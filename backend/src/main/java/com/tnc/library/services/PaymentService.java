@@ -10,7 +10,7 @@ import java.util.Map;
 public interface PaymentService {
     Payment addOrUpdatePayment(Payment payment);
 
-    Map<String, BigDecimal> getRevenueByType(int year, Integer month);
+    Map<String, Map<String, BigDecimal>> getRevenueByType(int year, Integer month);
 
     public Page<Payment> getPayments(int page, int size, String sortBy);
 

@@ -28,7 +28,7 @@ public class InteractServiceImpl implements InteractService {
     @Override
     public Page<Interact> getInteractsByBookId(Book book, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return interactRepository.findByBookId(book, pageable);
+        return interactRepository.findByBook(book, pageable);
     }
 
     @Override

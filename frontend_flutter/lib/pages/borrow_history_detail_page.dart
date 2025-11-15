@@ -109,10 +109,6 @@ class _BorrowHistoryDetailPageState extends State<BorrowHistoryDetailPage> {
             const SizedBox(height: 4),
             Text("Năm xuất bản: ${book.publishedDate}"),
             const SizedBox(height: 4),
-            Text(
-              "Giá: ${book.price.toStringAsFixed(0)} VNĐ",
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
           ],
         ),
       ),

@@ -125,9 +125,7 @@ class _BorrowingHistoryPageState extends State<BorrowingHistoryPage> {
     switch (status) {
       case 'RETURNED':
         return Colors.green;
-      case 'OVERDUE':
-        return Colors.red;
-      case 'BORROWED':
+      case 'BORROWING':
         return Colors.blue;
       default:
         return Colors.grey;
@@ -249,7 +247,7 @@ class _BorrowingHistoryPageState extends State<BorrowingHistoryPage> {
       case 'RESERVED':
         statusText = "Đã đặt chỗ";
         break;
-      case 'BORROWED':
+      case 'BORROWING':
         statusText = "Đang mượn";
         break;
       case 'RETURNED':

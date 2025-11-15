@@ -141,23 +141,26 @@ public class ApiPaymentController {
     }
 
     @GetMapping("/payment/revenue")
-    public ResponseEntity<Map<String, BigDecimal>> getRevenue(
+    public ResponseEntity<Map<String, Map<String, BigDecimal>>> getRevenue(
             @RequestParam int year,
             @RequestParam(required = false) Integer month) {
 
-        Map<String, BigDecimal> revenueMap = paymentService.getRevenueByType(year, month);
+        Map<String, Map<String, BigDecimal>> revenueMap = paymentService.getRevenueByType(year, month);
 
-        // Loại bỏ key null
-        Map<String, BigDecimal> cleanMap = revenueMap.entrySet().stream()
+        // Xóa key null nếu có
+        Map<String, Map<String, BigDecimal>> cleanMap = revenueMap.entrySet().stream()
                 .filter(e -> e.getKey() != null)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (a, b) -> a, LinkedHashMap::new));
 
         return ResponseEntity.ok(cleanMap);
     }
 
 
+
+
     @GetMapping("/payments")
-    public Page<Map<String, Object>> getReaders(
+    public Page<Map<String, Object>> getPayments(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "id") String sortBy
@@ -167,6 +170,7 @@ public class ApiPaymentController {
                     Map<String, Object> paymentMap = new HashMap<>();
                     paymentMap.put("id", p.getId());
                     paymentMap.put("user", p.getReader().getFullName());
+                    paymentMap.put("paymentDate", p.getPaymentDate());
                     if (p.getFine() != null) {
                         paymentMap.put("type", "fine");
                     } else {

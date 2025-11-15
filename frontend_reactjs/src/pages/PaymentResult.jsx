@@ -95,19 +95,19 @@ function PaymentResult({ storageKey }) {
     const statusMapping = {
       "success": {
         icon: <FaCheckCircle className="text-green-500 text-6xl mb-4 animate-scale-in" />,
-        title: "Thanh toán thành công! 🎉",
+        title: "Thanh toán thành công!",
         description: `Số tiền đã thanh toán: ${amount} VND`,
         buttonText: "Quay về trang chủ"
       },
       "failure": {
         icon: <FaTimesCircle className="text-red-500 text-6xl mb-4 animate-shake" />,
-        title: "Thanh toán thất bại! 😔",
+        title: "Thanh toán thất bại!",
         description: "Đã xảy ra lỗi trong quá trình xử lý giao dịch. Vui lòng thử lại.",
         buttonText: "Thử lại"
       },
       "invalid-signature": {
         icon: <FaExclamationCircle className="text-yellow-500 text-6xl mb-4 animate-pulse-slow" />,
-        title: "Lỗi chữ ký! ⚠️",
+        title: "Lỗi chữ ký!",
         description: "Chữ ký giao dịch không hợp lệ. Vui lòng liên hệ hỗ trợ.",
         buttonText: "Quay về"
       },
